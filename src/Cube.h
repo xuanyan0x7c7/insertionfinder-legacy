@@ -1,7 +1,6 @@
 #pragma once
 #include <array>
 #include <bitset>
-#include <iostream>
 #include "Formula.h"
 
 
@@ -19,25 +18,9 @@ public:
 	Cube& operator=(const Cube&);
 	Cube& operator=(Cube&&);
 	~Cube();
-public:
-	static constexpr int U = 1;
-	static constexpr int U2 = 2;
-	static constexpr int U3 = 3;
-	static constexpr int D = 5;
-	static constexpr int D2 = 6;
-	static constexpr int D3 = 7;
-	static constexpr int R = 9;
-	static constexpr int R2 = 10;
-	static constexpr int R3 = 11;
-	static constexpr int L = 13;
-	static constexpr int L2 = 14;
-	static constexpr int L3 = 15;
-	static constexpr int F = 17;
-	static constexpr int F2 = 18;
-	static constexpr int F3 = 19;
-	static constexpr int B = 21;
-	static constexpr int B2 = 22;
-	static constexpr int B3 = 23;
+private:
+	enum {U0, U, U2, U3, D0, D, D2, D3, R0, R, R2, R3, L0, L, L2, L3,
+			F0, F, F2, F3, B0, B, B2, B3};
 public:
 	Cube();
 	Cube(const Formula&);

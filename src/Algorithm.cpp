@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Algorithm.h"
 using std::array;
 using std::endl;

@@ -23,15 +23,9 @@ private:
 	std::array<size_t, 20> insert_place;
 	int cycles_inserted = 0;
 public:
-	static constexpr int alg_3CP = 0x01;
-	static constexpr int alg_2x2CP = 0x02;
-	static constexpr int alg_CO = 0x04;
-	static constexpr int alg_3EP = 0x08;
-	static constexpr int alg_2x2EP = 0x10;
-	static constexpr int alg_EO = 0x20;
-	static constexpr int alg_edge = 0x40;
-	static constexpr int alg_other = 0x80;
-public:
+	enum {alg_3CP = 0x01, alg_2x2CP = 0x02, alg_CO = 0x04, alg_3EP = 0x08,
+		alg_2x2EP = 0x10, alg_EO = 0x20, alg_edge = 0x40, alg_other = 0x80};
+private:
 	Find(const Find&);
 	Find(Find&&);
 	Find& operator=(const Find&);

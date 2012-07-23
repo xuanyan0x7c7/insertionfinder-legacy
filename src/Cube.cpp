@@ -240,13 +240,13 @@ void Cube::Twist(int move)
 	static const bitset<12> flipB("100100010001");
 	switch (move)
 	{
-		case Cube::U:
+		case U:
 			cycle(co, 0, 3, 2, 1);
 			cycle(cp, 0, 3, 2, 1);
 			cycle(eo, 0, 3, 2, 1);
 			cycle(ep, 0, 3, 2, 1);
 			break;
-		case Cube::U2:
+		case U2:
 			swap(co, 0, 2);
 			swap(co, 1, 3);
 			swap(cp, 0, 2);
@@ -256,19 +256,19 @@ void Cube::Twist(int move)
 			swap(ep, 0, 2);
 			swap(ep, 1, 3);
 			break;
-		case Cube::U3:
+		case U3:
 			cycle(co, 0, 1, 2, 3);
 			cycle(cp, 0, 1, 2, 3);
 			cycle(eo, 0, 1, 2, 3);
 			cycle(ep, 0, 1, 2, 3);
 			break;
-		case Cube::D:
+		case D:
 			cycle(co, 4, 5, 6, 7);
 			cycle(cp, 4, 5, 6, 7);
 			cycle(eo, 4, 5, 6, 7);
 			cycle(ep, 4, 5, 6, 7);
 			break;
-		case Cube::D2:
+		case D2:
 			swap(co, 4, 6);
 			swap(co, 5, 7);
 			swap(cp, 4, 6);
@@ -278,13 +278,13 @@ void Cube::Twist(int move)
 			swap(ep, 4, 6);
 			swap(ep, 5, 7);
 			break;
-		case Cube::D3:
+		case D3:
 			cycle(co, 4, 7, 6, 5);
 			cycle(cp, 4, 7, 6, 5);
 			cycle(eo, 4, 7, 6, 5);
 			cycle(ep, 4, 7, 6, 5);
 			break;
-		case Cube::R:
+		case R:
 			cycle(co, 2, 3, 7, 6);
 			cycle(cp, 2, 3, 7, 6);
 			co[2] = (co[2] + 2) % 3;
@@ -294,7 +294,7 @@ void Cube::Twist(int move)
 			cycle(eo, 3, 11, 7, 10);
 			cycle(ep, 3, 11, 7, 10);
 			break;
-		case Cube::R2:
+		case R2:
 			swap(co, 2, 7);
 			swap(co, 3, 6);
 			swap(cp, 2, 7);
@@ -304,7 +304,7 @@ void Cube::Twist(int move)
 			swap(ep, 3, 7);
 			swap(ep, 10, 11);
 			break;
-		case Cube::R3:
+		case R3:
 			cycle(co, 2, 6, 7, 3);
 			cycle(cp, 2, 6, 7, 3);
 			co[2] = (co[2] + 2) % 3;
@@ -314,7 +314,7 @@ void Cube::Twist(int move)
 			cycle(eo, 3, 10, 7, 11);
 			cycle(ep, 3, 10, 7, 11);
 			break;
-		case Cube::L:
+		case L:
 			cycle(co, 0, 1, 5, 4);
 			cycle(cp, 0, 1, 5, 4);
 			co[0] = (co[0] + 2) % 3;
@@ -324,7 +324,7 @@ void Cube::Twist(int move)
 			cycle(eo, 1, 9, 5, 8);
 			cycle(ep, 1, 9, 5, 8);
 			break;
-		case Cube::L2:
+		case L2:
 			swap(co, 0, 5);
 			swap(co, 1, 4);
 			swap(cp, 0, 5);
@@ -334,7 +334,7 @@ void Cube::Twist(int move)
 			swap(ep, 1, 5);
 			swap(ep, 8, 9);
 			break;
-		case Cube::L3:
+		case L3:
 			cycle(co, 0, 4, 5, 1);
 			cycle(cp, 0, 4, 5, 1);
 			co[0] = (co[0] + 2) % 3;
@@ -344,7 +344,7 @@ void Cube::Twist(int move)
 			cycle(eo, 1, 8, 5, 9);
 			cycle(ep, 1, 8, 5, 9);
 			break;
-		case Cube::F:
+		case F:
 			cycle(co, 1, 2, 6, 5);
 			cycle(cp, 1, 2, 6, 5);
 			co[1] = (co[1] + 2) % 3;
@@ -355,7 +355,7 @@ void Cube::Twist(int move)
 			cycle(ep, 2, 10, 6, 9);
 			eo ^= flipF;
 			break;
-		case Cube::F2:
+		case F2:
 			swap(co, 1, 6);
 			swap(co, 2, 5);
 			swap(cp, 1, 6);
@@ -365,7 +365,7 @@ void Cube::Twist(int move)
 			swap(ep, 2, 6);
 			swap(ep, 9, 10);
 			break;
-		case Cube::F3:
+		case F3:
 			cycle(co, 1, 5, 6, 2);
 			cycle(cp, 1, 5, 6, 2);
 			co[1] = (co[1] + 2) % 3;
@@ -376,7 +376,7 @@ void Cube::Twist(int move)
 			cycle(ep, 2, 9, 6, 10);
 			eo ^= flipF;
 			break;
-		case Cube::B:
+		case B:
 			cycle(co, 0, 4, 7, 3);
 			cycle(cp, 0, 4, 7, 3);
 			co[0] = (co[0] + 1) % 3;
@@ -387,7 +387,7 @@ void Cube::Twist(int move)
 			cycle(ep, 0, 8, 4, 11);
 			eo ^= flipB;
 			break;
-		case Cube::B2:
+		case B2:
 			swap(co, 0, 7);
 			swap(co, 3, 4);
 			swap(cp, 0, 7);
@@ -397,7 +397,7 @@ void Cube::Twist(int move)
 			swap(ep, 0, 4);
 			swap(ep, 8, 11);
 			break;
-		case Cube::B3:
+		case B3:
 			cycle(co, 0, 3, 7, 4);
 			cycle(cp, 0, 3, 7, 4);
 			co[0] = (co[0] + 1) % 3;
@@ -417,35 +417,35 @@ void Cube::TwistCorner(int move)
 {
 	switch (move)
 	{
-		case Cube::U:
+		case U:
 			cycle(co, 0, 3, 2, 1);
 			cycle(cp, 0, 3, 2, 1);
 			break;
-		case Cube::U2:
+		case U2:
 			swap(co, 0, 2);
 			swap(co, 1, 3);
 			swap(cp, 0, 2);
 			swap(cp, 1, 3);
 			break;
-		case Cube::U3:
+		case U3:
 			cycle(co, 0, 1, 2, 3);
 			cycle(cp, 0, 1, 2, 3);
 			break;
-		case Cube::D:
+		case D:
 			cycle(co, 4, 5, 6, 7);
 			cycle(cp, 4, 5, 6, 7);
 			break;
-		case Cube::D2:
+		case D2:
 			swap(co, 4, 6);
 			swap(co, 5, 7);
 			swap(cp, 4, 6);
 			swap(cp, 5, 7);
 			break;
-		case Cube::D3:
+		case D3:
 			cycle(co, 4, 7, 6, 5);
 			cycle(cp, 4, 7, 6, 5);
 			break;
-		case Cube::R:
+		case R:
 			cycle(co, 2, 3, 7, 6);
 			cycle(cp, 2, 3, 7, 6);
 			co[2] = (co[2] + 2) % 3;
@@ -453,13 +453,13 @@ void Cube::TwistCorner(int move)
 			co[6] = (co[6] + 1) % 3;
 			co[7] = (co[7] + 2) % 3;
 			break;
-		case Cube::R2:
+		case R2:
 			swap(co, 2, 7);
 			swap(co, 3, 6);
 			swap(cp, 2, 7);
 			swap(cp, 3, 6);
 			break;
-		case Cube::R3:
+		case R3:
 			cycle(co, 2, 6, 7, 3);
 			cycle(cp, 2, 6, 7, 3);
 			co[2] = (co[2] + 2) % 3;
@@ -467,7 +467,7 @@ void Cube::TwistCorner(int move)
 			co[6] = (co[6] + 1) % 3;
 			co[7] = (co[7] + 2) % 3;
 			break;
-		case Cube::L:
+		case L:
 			cycle(co, 0, 1, 5, 4);
 			cycle(cp, 0, 1, 5, 4);
 			co[0] = (co[0] + 2) % 3;
@@ -475,13 +475,13 @@ void Cube::TwistCorner(int move)
 			co[4] = (co[4] + 1) % 3;
 			co[5] = (co[5] + 2) % 3;
 			break;
-		case Cube::L2:
+		case L2:
 			swap(co, 0, 5);
 			swap(co, 1, 4);
 			swap(cp, 0, 5);
 			swap(cp, 1, 4);
 			break;
-		case Cube::L3:
+		case L3:
 			cycle(co, 0, 4, 5, 1);
 			cycle(cp, 0, 4, 5, 1);
 			co[0] = (co[0] + 2) % 3;
@@ -489,7 +489,7 @@ void Cube::TwistCorner(int move)
 			co[4] = (co[4] + 1) % 3;
 			co[5] = (co[5] + 2) % 3;
 			break;
-		case Cube::F:
+		case F:
 			cycle(co, 1, 2, 6, 5);
 			cycle(cp, 1, 2, 6, 5);
 			co[1] = (co[1] + 2) % 3;
@@ -497,13 +497,13 @@ void Cube::TwistCorner(int move)
 			co[5] = (co[5] + 1) % 3;
 			co[6] = (co[6] + 2) % 3;
 			break;
-		case Cube::F2:
+		case F2:
 			swap(co, 1, 6);
 			swap(co, 2, 5);
 			swap(cp, 1, 6);
 			swap(cp, 2, 5);
 			break;
-		case Cube::F3:
+		case F3:
 			cycle(co, 1, 5, 6, 2);
 			cycle(cp, 1, 5, 6, 2);
 			co[1] = (co[1] + 2) % 3;
@@ -511,7 +511,7 @@ void Cube::TwistCorner(int move)
 			co[5] = (co[5] + 1) % 3;
 			co[6] = (co[6] + 2) % 3;
 			break;
-		case Cube::B:
+		case B:
 			cycle(co, 0, 4, 7, 3);
 			cycle(cp, 0, 4, 7, 3);
 			co[0] = (co[0] + 1) % 3;
@@ -519,13 +519,13 @@ void Cube::TwistCorner(int move)
 			co[4] = (co[4] + 2) % 3;
 			co[7] = (co[7] + 1) % 3;
 			break;
-		case Cube::B2:
+		case B2:
 			swap(co, 0, 7);
 			swap(co, 3, 4);
 			swap(cp, 0, 7);
 			swap(cp, 3, 4);
 			break;
-		case Cube::B3:
+		case B3:
 			cycle(co, 0, 3, 7, 4);
 			cycle(cp, 0, 3, 7, 4);
 			co[0] = (co[0] + 1) % 3;
@@ -544,90 +544,90 @@ void Cube::TwistEdge(int move)
 	static const bitset<12> flipB("100100010001");
 	switch (move)
 	{
-		case Cube::U:
+		case U:
 			cycle(eo, 0, 3, 2, 1);
 			cycle(ep, 0, 3, 2, 1);
 			break;
-		case Cube::U2:
+		case U2:
 			swap(eo, 0, 2);
 			swap(eo, 1, 3);
 			swap(ep, 0, 2);
 			swap(ep, 1, 3);
 			break;
-		case Cube::U3:
+		case U3:
 			cycle(eo, 0, 1, 2, 3);
 			cycle(ep, 0, 1, 2, 3);
 			break;
-		case Cube::D:
+		case D:
 			cycle(eo, 4, 5, 6, 7);
 			cycle(ep, 4, 5, 6, 7);
 			break;
-		case Cube::D2:
+		case D2:
 			swap(eo, 4, 6);
 			swap(eo, 5, 7);
 			swap(ep, 4, 6);
 			swap(ep, 5, 7);
 			break;
-		case Cube::D3:
+		case D3:
 			cycle(eo, 4, 7, 6, 5);
 			cycle(ep, 4, 7, 6, 5);
 			break;
-		case Cube::R:
+		case R:
 			cycle(eo, 3, 11, 7, 10);
 			cycle(ep, 3, 11, 7, 10);
 			break;
-		case Cube::R2:
+		case R2:
 			swap(eo, 3, 7);
 			swap(eo, 10, 11);
 			swap(ep, 3, 7);
 			swap(ep, 10, 11);
 			break;
-		case Cube::R3:
+		case R3:
 			cycle(eo, 3, 10, 7, 11);
 			cycle(ep, 3, 10, 7, 11);
 			break;
-		case Cube::L:
+		case L:
 			cycle(eo, 1, 9, 5, 8);
 			cycle(ep, 1, 9, 5, 8);
 			break;
-		case Cube::L2:
+		case L2:
 			swap(eo, 1, 5);
 			swap(eo, 8, 9);
 			swap(ep, 1, 5);
 			swap(ep, 8, 9);
 			break;
-		case Cube::L3:
+		case L3:
 			cycle(eo, 1, 8, 5, 9);
 			cycle(ep, 1, 8, 5, 9);
 			break;
-		case Cube::F:
+		case F:
 			cycle(eo, 2, 10, 6, 9);
 			cycle(ep, 2, 10, 6, 9);
 			eo ^= flipF;
 			break;
-		case Cube::F2:
+		case F2:
 			swap(eo, 2, 6);
 			swap(eo, 9, 10);
 			swap(ep, 2, 6);
 			swap(ep, 9, 10);
 			break;
-		case Cube::F3:
+		case F3:
 			cycle(eo, 2, 9, 6, 10);
 			cycle(ep, 2, 9, 6, 10);
 			eo ^= flipF;
 			break;
-		case Cube::B:
+		case B:
 			cycle(eo, 0, 8, 4, 11);
 			cycle(ep, 0, 8, 4, 11);
 			eo ^= flipB;
 			break;
-		case Cube::B2:
+		case B2:
 			swap(eo, 0, 4);
 			swap(eo, 8, 11);
 			swap(ep, 0, 4);
 			swap(ep, 8, 11);
 			break;
-		case Cube::B3:
+		case B3:
 			cycle(eo, 0, 11, 4, 8);
 			cycle(ep, 0, 11, 4, 8);
 			eo ^= flipB;

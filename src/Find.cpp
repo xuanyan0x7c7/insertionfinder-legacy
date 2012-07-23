@@ -40,8 +40,7 @@ Find::Solve(const Formula &scramble, const Formula &solve, int include)
 		if (include & (1 << i))
 		{
 			static const string num("01234567");
-			ifstream in((string("/usr/local/bin/insertionfinder/AlgFiles/")
-						+ num[i]).c_str());
+			ifstream in((string("AlgFiles/") + num[i]).c_str());
 			size_t alg_count;
 			in >> alg_count;
 			size_t recent_size = finder.algorithm.size();
