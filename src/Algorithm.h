@@ -3,8 +3,7 @@
 #include "Cube.h"
 
 
-class Algorithm
-{
+class Algorithm {
 public:
 	Cube state;
 	size_t mask;

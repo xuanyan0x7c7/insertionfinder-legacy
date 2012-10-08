@@ -5,8 +5,7 @@
 #include "Algorithm.h"
 
 
-class Find
-{
+class Find {
 private:
 	std::vector<Algorithm> algorithm;
 	std::array<int, 6144> corner_cycle_index;
@@ -22,6 +21,7 @@ private:
 	std::array<Formula, 20> insertion;
 	std::array<size_t, 20> insert_place;
 	int cycles_inserted = 0;
+	const std::string &language;
 public:
 	enum {alg_3CP = 0x01, alg_2x2CP = 0x02, alg_CO = 0x04, alg_3EP = 0x08,
 		alg_2x2EP = 0x10, alg_EO = 0x20, alg_edge = 0x40, alg_other = 0x80};
@@ -32,10 +32,10 @@ private:
 	Find& operator=(Find&&);
 	~Find();
 private:
-	Find();
+	Find(const std::string&);
 public:
 	static std::pair<std::string, long>
-	Solve(const Formula&, const Formula&, int alg_include);
+	Solve(const Formula&, const Formula&, int alg_include, std::string);
 private:
 	void Search(int ,int, int, int);
 	void SearchCorner(int, int, int);

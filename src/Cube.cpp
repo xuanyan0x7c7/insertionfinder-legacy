@@ -11,23 +11,20 @@ using std::ostream;
 using std::string;
 
 
-namespace
-{
-	constexpr int inverse_move[24] =
-		{0, 3, 2, 1, 4, 7, 6, 5, 8, 11, 10, 9,
+namespace {
+	constexpr int inverse_move[24] = {
+		0, 3, 2, 1, 4, 7, 6, 5, 8, 11, 10, 9,
 		12, 15, 14, 13, 16, 19, 18, 17, 20, 23, 22, 21};
 
 	template <size_t N>
-	inline void swap(array<int, N> &arr, int x1, int x2)
-	{
+	inline void swap(array<int, N> &arr, int x1, int x2) {
 		int temp = arr[x1];
 		arr[x1] = arr[x2];
 		arr[x2] = temp;
 	}
 
 	template <size_t N>
-	inline void cycle(array<int, N> &arr, int x1, int x2, int x3, int x4)
-	{
+	inline void cycle(array<int, N> &arr, int x1, int x2, int x3, int x4) {
 		int temp = arr[x1];
 		arr[x1] = arr[x4];
 		arr[x4] = arr[x3];
@@ -35,15 +32,13 @@ namespace
 		arr[x2] = temp;
 	}
 
-	inline void swap(bitset<12> &arr, int x1, int x2)
-	{
+	inline void swap(bitset<12> &arr, int x1, int x2) {
 		bool temp = arr[x1];
 		arr.set(x1, arr[x2]);
 		arr.set(x2, temp);
 	}
 
-	inline void cycle(bitset<12> &arr, int x1, int x2, int x3, int x4)
-	{
+	inline void cycle(bitset<12> &arr, int x1, int x2, int x3, int x4) {
 		bool temp = arr[x1];
 		arr.set(x1, arr[x4]);
 		arr.set(x4, arr[x3]);
@@ -63,77 +58,63 @@ Cube::Cube():
 	cp({{0, 1, 2, 3, 4, 5, 6, 7}}),
 	ep({{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}}) {}
 
-Cube::Cube(const Formula &formula): Cube()
-{
+Cube::Cube(const Formula &formula): Cube() {
 	Twist(formula);
 }
 
-namespace
-{
-	array<Cube, 24> InitOneMoveCube()
-	{
+namespace {
+	array<Cube, 24> InitOneMoveCube() {
 		array<Cube, 24> cube_array;
-		for (int i = 0; i < 24; ++i)
+		for (int i = 0; i < 24; ++i) {
 			cube_array[i].Twist(i);
+		}
 		return cube_array;
 	}
 	
-	array<int, 147456> InitCornerCycleTable()
-	{
+	array<int, 147456> InitCornerCycleTable() {
 		array<int, 147456> table;
 		Cube identity;
-		for (int i = 0; i < 6144; ++i)
-		{
+		for (int i = 0; i < 6144; ++i) {
 			Cube cube = Cube::CornerCycleCube(i);
-			if (cube == identity)
-			{
-				for (int j = 0; j < 24; ++j)
+			if (cube == identity) {
+				for (int j = 0; j < 24; ++j) {
 					table[i * 24 + j] = i;
-			}
-			else
-			{
-				for (int j = 0; j < 24; ++j)
-				{
-					if (j & 3)
-					{
+				}
+			} else {
+				for (int j = 0; j < 24; ++j) {
+					if (j & 3) {
 						Cube cube0(cube);
 						cube0.TwistCornerBefore(inverse_move[j]);
 						cube0.TwistCorner(j);
 						table[i * 24 + j] = cube0.GetCornerCycleIndex();
-					}
-					else
+					} else {
 						table[i * 24 + j] = i;
+					}
 				}
 			}
 		}
 		return table;
 	}
 	
-	array<int, 245760> InitEdgeCycleTable()
-	{
+	array<int, 245760> InitEdgeCycleTable() {
 		array<int, 245760> table;
 		Cube identity;
-		for (int i = 0; i < 10240; ++i)
-		{
+		for (int i = 0; i < 10240; ++i) {
 			Cube cube = Cube::EdgeCycleCube(i);
-			if (cube == identity)
-			{
-				for (int j = 0; j < 24; ++j)
+			if (cube == identity) {
+				for (int j = 0; j < 24; ++j) {
 					table[i * 24 + j] = i;
-			}
-			else
-			{
-				for (int j = 0; j < 24; ++j)
-				{
-					if (j & 3)
-					{
+				}
+			} else {
+				for (int j = 0; j < 24; ++j) {
+					if (j & 3) {
 						Cube cube0(cube);
 						cube0.TwistEdgeBefore(inverse_move[j]);
 						cube0.TwistEdge(j);
 						table[i * 24 + j] = cube0.GetEdgeCycleIndex();
-					}
-					else
+					} else {
 						table[i * 24 + j] = i;
+					}
 				}
 			}
 		}
@@ -145,87 +126,86 @@ const array<Cube, 24> Cube::one_move_cube = InitOneMoveCube();
 const array<int, 147456> Cube::corner_cycle_table = InitCornerCycleTable();
 const array<int, 245760> Cube::edge_cycle_table = InitEdgeCycleTable();
 
-istream& operator>>(istream &in, Cube &cube)
-{
-	for (int &x: cube.co)
+istream& operator>>(istream &in, Cube &cube) {
+	for (int &x: cube.co) {
 		in >> x;
-	for (int &x: cube.cp)
+	}
+	for (int &x: cube.cp) {
 		in >> x;
-	for (int i = 0; i < 12; ++i)
-	{
+	}
+	for (int i = 0; i < 12; ++i) {
 		int x;
 		in >> x;
 		cube.eo.set(i, x);
 	}
-	for (int &x: cube.ep)
+	for (int &x: cube.ep) {
 		in >> x;
+	}
 	return in;
 }
 
-ostream& operator<<(ostream &out, const Cube &cube)
-{
-	for (int x: cube.co)
+ostream& operator<<(ostream &out, const Cube &cube) {
+	for (int x: cube.co) {
 		out << x << ' ';
-	for (int x: cube.cp)
+	}
+	for (int x: cube.cp) {
 		out << x << ' ';
-	for (int i = 0; i < 12; ++i)
+	}
+	for (int i = 0; i < 12; ++i) {
 		out << cube.eo[i] << ' ';
-	for (int x: cube.ep)
+	}
+	for (int x: cube.ep) {
 		out << x << ' ';
+	}
 	return out;
 }
 
-bool operator==(const Cube &lhs, const Cube &rhs)
-{
+bool operator==(const Cube &lhs, const Cube &rhs) {
 	return lhs.co == rhs.co && lhs.cp == rhs.cp
-		   && lhs.eo == rhs.eo && lhs.ep == rhs.ep;
+	   && lhs.eo == rhs.eo && lhs.ep == rhs.ep;
 }
 
-bool operator!=(const Cube &lhs, const Cube &rhs)
-{
+bool operator!=(const Cube &lhs, const Cube &rhs) {
 	return !(lhs == rhs);
 }
 
-bool operator<(const Cube &lhs, const Cube &rhs)
-{
-	for (int i = 0; i < 8; ++i)
-	{
-		if (lhs.co[i] < rhs.co[i])
+bool operator<(const Cube &lhs, const Cube &rhs) {
+	for (int i = 0; i < 8; ++i) {
+		if (lhs.co[i] < rhs.co[i]) {
 			return true;
-		else if (lhs.co[i] > rhs.co[i])
+		} else if (lhs.co[i] > rhs.co[i]) {
 			return false;
+		}
 	}
-	for (int i = 0; i < 8; ++i)
-	{
-		if (lhs.cp[i] < rhs.cp[i])
+	for (int i = 0; i < 8; ++i) {
+		if (lhs.cp[i] < rhs.cp[i]) {
 			return true;
-		else if (lhs.cp[i] > rhs.cp[i])
+		} else if (lhs.cp[i] > rhs.cp[i]) {
 			return false;
+		}
 	}
-	for (int i = 0; i < 12; ++i)
-	{
-		if (lhs.eo[i] < rhs.eo[i])
+	for (int i = 0; i < 12; ++i) {
+		if (lhs.eo[i] < rhs.eo[i]) {
 			return true;
-		else if (lhs.eo[i] > rhs.eo[i])
+		} else if (lhs.eo[i] > rhs.eo[i]) {
 			return false;
+		}
 	}
-	for (int i = 0; i < 12; ++i)
-	{
-		if (lhs.ep[i] < rhs.ep[i])
+	for (int i = 0; i < 12; ++i) {
+		if (lhs.ep[i] < rhs.ep[i]) {
 			return true;
-		else if (lhs.ep[i] > rhs.ep[i])
+		} else if (lhs.ep[i] > rhs.ep[i]) {
 			return false;
+		}
 	}
 	return false;
 }
 
-bool operator>(const Cube &lhs, const Cube &rhs)
-{
+bool operator>(const Cube &lhs, const Cube &rhs) {
 	return rhs < lhs;
 }
 
-void Cube::Reset()
-{
+void Cube::Reset() {
 	co.fill(0);
 	eo.reset();
 	for (int i = 0; i < 8; ++i)
@@ -234,12 +214,10 @@ void Cube::Reset()
 		ep[i] = i;
 }
 
-void Cube::Twist(int move)
-{
+void Cube::Twist(int move) {
 	static const bitset<12> flipF("011001000100");
 	static const bitset<12> flipB("100100010001");
-	switch (move)
-	{
+	switch (move) {
 		case U:
 			cycle(co, 0, 3, 2, 1);
 			cycle(cp, 0, 3, 2, 1);
@@ -413,10 +391,8 @@ void Cube::Twist(int move)
 	}
 }
 
-void Cube::TwistCorner(int move)
-{
-	switch (move)
-	{
+void Cube::TwistCorner(int move) {
+	switch (move) {
 		case U:
 			cycle(co, 0, 3, 2, 1);
 			cycle(cp, 0, 3, 2, 1);
@@ -538,12 +514,10 @@ void Cube::TwistCorner(int move)
 	}
 }
 
-void Cube::TwistEdge(int move)
-{
+void Cube::TwistEdge(int move) {
 	static const bitset<12> flipF("011001000100");
 	static const bitset<12> flipB("100100010001");
-	switch (move)
-	{
+	switch (move) {
 		case U:
 			cycle(eo, 0, 3, 2, 1);
 			cycle(ep, 0, 3, 2, 1);
@@ -637,62 +611,62 @@ void Cube::TwistEdge(int move)
 	}
 }
 
-void Cube::Twist(const Formula &f, bool dir)
-{
+void Cube::Twist(const Formula &f, bool dir) {
 	Twist(f, 0, f.length(), dir);
 }
 
-void Cube::TwistCorner(const Formula &f, bool dir)
-{
+void Cube::TwistCorner(const Formula &f, bool dir) {
 	TwistCorner(f, 0, f.length(), dir);
 }
 
-void Cube::TwistEdge(const Formula &f, bool dir)
-{
+void Cube::TwistEdge(const Formula &f, bool dir) {
 	TwistEdge(f, 0, f.length(), dir);
 }
 
-void Cube::Twist(const Formula &f, size_t start, size_t end, bool dir)
-{
-	if (dir)
-		for (size_t i = start; i < end; ++i)
+void Cube::Twist(const Formula &f, size_t start, size_t end, bool dir) {
+	if (dir) {
+		for (size_t i = start; i < end; ++i) {
 			Twist(f[i]);
-	else
-		for (size_t i = end; i > start; --i)
+		}
+	} else {
+		for (size_t i = end; i > start; --i) {
 			Twist(inverse_move[f[i - 1]]);
+		}
+	}
 }
 
-void Cube::TwistCorner(const Formula &f, size_t start, size_t end, bool dir)
-{
-	if (dir)
-		for (size_t i = start; i < end; ++i)
+void Cube::TwistCorner(const Formula &f, size_t start, size_t end, bool dir) {
+	if (dir) {
+		for (size_t i = start; i < end; ++i) {
 			TwistCorner(f[i]);
-	else
-		for (size_t i = end; i > start; --i)
+		}
+	} else {
+		for (size_t i = end; i > start; --i) {
 			TwistCorner(inverse_move[f[i - 1]]);
+		}
+	}
 }
 
-void Cube::TwistEdge(const Formula &f, size_t start, size_t end, bool dir)
-{
-	if (dir)
-		for (size_t i = start; i < end; ++i)
+void Cube::TwistEdge(const Formula &f, size_t start, size_t end, bool dir) {
+	if (dir) {
+		for (size_t i = start; i < end; ++i) {
 			TwistEdge(f[i]);
-	else
-		for (size_t i = end; i > start; --i)
+		}
+	} else {
+		for (size_t i = end; i > start; --i) {
 			TwistEdge(inverse_move[f[i - 1]]);
+		}
+	}
 }
 
-void Cube::Twist(const Cube &cube)
-{
+void Cube::Twist(const Cube &cube) {
 	static Cube result;
-	for (int i = 0; i < 8; ++i)
-	{
+	for (int i = 0; i < 8; ++i) {
 		int j = cube.cp[i];
 		result.cp[i] = this->cp[j];
 		result.co[i] = (this->co[j] + cube.co[i]) % 3;
 	}
-	for (int i = 0; i < 12; ++i)
-	{
+	for (int i = 0; i < 12; ++i) {
 		int j = cube.ep[i];
 		result.ep[i] = this->ep[j];
 		result.eo.set(i, this->eo[j] ^ cube.eo[i]);
@@ -700,240 +674,206 @@ void Cube::Twist(const Cube &cube)
 	*this = result;
 }
 
-void Cube::TwistCorner(const Cube &cube)
-{
+void Cube::TwistCorner(const Cube &cube) {
 	static int ori[8], perm[8];
-	for (int i = 0; i < 8; ++i)
-	{
+	for (int i = 0; i < 8; ++i) {
 		int j = cube.cp[i];
 		perm[i] = this->cp[j];
 		ori[i] = (this->co[j] + cube.co[i]) % 3;
 	}
-	for (int i = 0; i < 8; ++i)
-	{
+	for (int i = 0; i < 8; ++i) {
 		this->co[i] = ori[i];
 		this->cp[i] = perm[i];
 	}
 }
 
-void Cube::TwistEdge(const Cube &cube)
-{
+void Cube::TwistEdge(const Cube &cube) {
 	static bitset<12> ori;
 	static int perm[12];
-	for (int i = 0; i < 12; ++i)
-	{
+	for (int i = 0; i < 12; ++i) {
 		int j = cube.ep[i];
 		perm[i] = this->ep[j];
 		ori.set(i, this->eo[j] ^ cube.eo[i]);
 	}
 	this->eo = ori;
-	for (int i = 0; i < 12; ++i)
+	for (int i = 0; i < 12; ++i) {
 		this->ep[i] = perm[i];
+	}
 }
 
 bool Twist(const Cube &lhs, const Cube &rhs, Cube &result,
-		   bool cornerchanged, bool edgechanged)
-{
-	if (cornerchanged)
-	{
-		for (int i = 0; i < 8; ++i)
-		{
+	bool cornerchanged, bool edgechanged) {
+	if (cornerchanged) {
+		for (int i = 0; i < 8; ++i) {
 			int j = rhs.cp[i];
 			result.cp[i] = lhs.cp[j];
 			result.co[i] = (lhs.co[j] + rhs.co[i]) % 3;
-			if (result.cp[i] == i && result.co[i] && lhs.cp[i] != i)
+			if (result.cp[i] == i && result.co[i] && lhs.cp[i] != i) {
 				return false;
+			}
 		}
 	}
-	if (edgechanged)
-	{
-		for (int i = 0; i < 12; ++i)
-		{
+	if (edgechanged) {
+		for (int i = 0; i < 12; ++i) {
 			int j = rhs.ep[i];
 			result.ep[i] = lhs.ep[j];
 			result.eo.set(i, lhs.eo[j] ^ rhs.eo[i]);
-			if (result.ep[i] == i && result.eo[i] && lhs.ep[i] != i)
+			if (result.ep[i] == i && result.eo[i] && lhs.ep[i] != i) {
 				return false;
+			}
 		}
 	}
 	return true;
 }
 
-void Cube::TwistBefore(int move)
-{
+void Cube::TwistBefore(int move) {
 	TwistBefore(Cube::one_move_cube[move]);
 }
 
-void Cube::TwistCornerBefore(int move)
-{
+void Cube::TwistCornerBefore(int move) {
 	TwistCornerBefore(Cube::one_move_cube[move]);
 }
 
-void Cube::TwistEdgeBefore(int move)
-{
+void Cube::TwistEdgeBefore(int move) {
 	TwistEdgeBefore(Cube::one_move_cube[move]);
 }
 
-void Cube::TwistBefore(const Cube &cube)
-{
-	for (int i = 0; i < 8; ++i)
-	{
+void Cube::TwistBefore(const Cube &cube) {
+	for (int i = 0; i < 8; ++i) {
 		int j = this->cp[i];
 		this->cp[i] = cube.cp[j];
 		this->co[i] = (this->co[i] + cube.co[j]) % 3;
 	}
-	for (int i = 0; i < 12; ++i)
-	{
+	for (int i = 0; i < 12; ++i) {
 		int j = this->ep[i];
 		this->ep[i] = cube.ep[j];
-		if (cube.eo[j])
+		if (cube.eo[j]) {
 			this->eo.flip(i);
+		}
 	}
 }
 
-void Cube::TwistCornerBefore(const Cube &cube)
-{
-	for (int i = 0; i < 8; ++i)
-	{
+void Cube::TwistCornerBefore(const Cube &cube) {
+	for (int i = 0; i < 8; ++i) {
 		int j = this->cp[i];
 		this->cp[i] = cube.cp[j];
 		this->co[i] = (this->co[i] + cube.co[j]) % 3;
 	}
 }
 
-void Cube::TwistEdgeBefore(const Cube &cube)
-{
-	for (int i = 0; i < 12; ++i)
-	{
+void Cube::TwistEdgeBefore(const Cube &cube) {
+	for (int i = 0; i < 12; ++i) {
 		int j = this->ep[i];
 		this->ep[i] = cube.ep[j];
-		if (cube.eo[j])
+		if (cube.eo[j]) {
 			this->eo.flip(i);
+		}
 	}
 }
 
-size_t Cube::Mask() const
-{
+size_t Cube::Mask() const {
 	size_t mask = 0;
-	for (int i = 0; i < 8; ++i)
-	{
+	for (int i = 0; i < 8; ++i) {
 		mask <<= 1;
-		if (co[i] || cp[i] != i)
+		if (co[i] || cp[i] != i) {
 			mask |= 1;
+		}
 	}
-	for (int i = 0; i < 12; ++i)
-	{
+	for (int i = 0; i < 12; ++i) {
 		mask <<= 1;
-		if (eo[i] || ep[i] != i)
+		if (eo[i] || ep[i] != i) {
 			mask |= 1;
+		}
 	}
 	return mask;
 }
 
-bool Cube::IsParity() const
-{
+bool Cube::IsParity() const {
 	static bitset<8> visited;
-	int length;
+	bool length;
 	bool ok = false;
 	visited.reset();
-
-	for (int i = 0; i < 8; ++i)
-	{
-		if (!visited.test(i))
-		{
-			if (cp[i] != i)
-			{
-				length = 0;
-				int j = i;
-				while (cp[j] != i)
-				{
-					j = cp[j];
-					visited.set(j);
-					length ^= 1;
-				}
-				if (length)
-					ok = !ok;
+	for (int i = 0; i < 8; ++i) {
+		if (!visited.test(i) && cp[i] != i) {
+			length = false;
+			int j = i;
+			while (cp[j] != i) {
+				j = cp[j];
+				visited.set(j);
+				length = !length;
+			}
+			if (length) {
+				ok = !ok;
 			}
 		}
 	}
-
 	return ok;
 }
 
-namespace
-{
-	array<int, 20736> InitNextState()
-	{
+namespace {
+	array<int, 20736> InitNextState() {
 		array<int, 20736> table;
 		static constexpr int next[6][2] =
 			{{1, 2}, {3, 4}, {4, 5}, {0, 1}, {1, 2}, {2, 0}};
-		for (int i = 0; i < 6 * 144; ++i)
-		{
-			for (int j = 0; j < 8 * 3; ++j)
-			{
+		for (int i = 0; i < 864; ++i) {
+			for (int j = 0; j < 24; ++j) {
 				int count = i / 144;
 				int type1 = i % 144 / 24;
 				int type2 = i % 24 / 6;
 				int type3 = i % 6;
 				int len = j / 3;
 				int o = j % 3;
-				while (len >= 3)
-				{
+				while (len >= 3) {
 					len -= 2;
 					++count;
 				}
 				len %= 3;
-				if (len == 0 && o != 0)
-				{
-					if (type1 >= 3)
-					{
+				if (len == 0 && o != 0) {
+					if (type1 >= 3) {
 						++count;
 						o = next[type1][o - 1];
 						len = 2;
 						type1 = 0;
-					}
-					else
+					} else {
 						type1 = next[type1][o - 1];
+					}
 				}
-				if (len == 1)
-				{
-					if (type2 == 0)
+				if (len == 1) {
+					if (type2 == 0) {
 						type2 = o + 1;
-					else
-					{
+					} else {
 						o = (type2 - 1 + o) % 3;
 						++count;
 						len = 2;
 						type2 = 0;
 					}
 				}
-				if (len == 2)
-				{
-					if (o == 0)
+				if (len == 2) {
+					if (o == 0) {
 						++count;
-					else if (type3 <= 3)
+					} else if (type3 <= 3) {
 						type3 = next[type3][o - 1];
+					}
 				}
 				table[i * 24 + j] = count * 144 + type1 * 24
-									+ type2 * 6 + type3;
+					+ type2 * 6 + type3;
 			}
 		}
 		return table;
 	}
 	
-	array<int, 864> InitOutputState()
-	{
+	array<int, 864> InitOutputState() {
 		array<int, 864> table;
 		static constexpr int spl[6][2] =
 			{{0, 0}, {1, 0}, {0, 1}, {2, 0}, {1, 1}, {0, 2}};
-		for (int i = 0; i < 6 * 144; i++)
-		{
+		for (int i = 0; i < 864; i++) {
 			int count = i / 144;
 			int type1 = i % 144 / 24;
 			int type2 = i % 24 / 6;
 			int type3 = i % 6;
-			if (type2 != 0)
+			if (type2 != 0) {
 				table[i] = -1;
+			}
 			int t0 = spl[type1][0];
 			int t1 = spl[type1][1];
 			int t2 = spl[type3][0];
@@ -946,12 +886,13 @@ namespace
 			count += 2 * min;
 			t1 -= min;
 			t2 -= min;
-			if (t0 && t1)
+			if (t0 > 0 && t1 > 0) {
 				table[i] = count + t0 + 1;
-			else if (t0 || t1)
+			} else if (t0 > 0 || t1 > 0) {
 				table[i] = count + 2 + t2 + t3;
-			else
+			} else {
 				table[i] = count + 3 * t2;
+			}
 		}
 		return table;
 	}
@@ -960,33 +901,27 @@ namespace
 	const array<int, 864> output_table = InitOutputState();
 }
 
-int Cube::CornerCycles() const
-{
+int Cube::CornerCycles() const {
 	static bitset<8> visited;
 	int state = 0;
 	visited.reset();
 
-	for (int i = 0; i < 8; ++i)
-	{
-		if (!visited.test(i))
-		{
-			if (cp[i] != i)
-			{
+	for (int i = 0; i < 8; ++i) {
+		if (!visited.test(i)) {
+			if (cp[i] != i) {
 				int len = 0;
 				int ori_sum = co[i];
 				int j = i;
-				do
-				{
+				do {
 					j = cp[j];
 					visited.set(j);
 					ori_sum += co[j];
 					++len;
-				}
-				while (cp[j] != i);
+				} while (cp[j] != i);
 				state = next_table[state * 24 + len * 3 + ori_sum % 3];
-			}
-			else if (co[i])
+			} else if (co[i] != 0) {
 				state = next_table[state * 24 + co[i]];
+			}
 		}
 	}
 
@@ -1000,37 +935,30 @@ int Cube::EdgeCycles() const
 	visited.reset();
 	int count = 0, oricount = 0;
 
-	for (int i = 0; i < 12; ++i)
-	{
-		if (!visited.test(i))
-		{
-			if (ep[i] != i)
-			{
+	for (int i = 0; i < 12; ++i) {
+		if (!visited.test(i)) {
+			if (ep[i] != i) {
 				int ori_sum = eo[i];
 				int len = 1;
 				int j = i;
-				do
-				{
+				do {
 					j = ep[j];
 					visited.set(j);
 					ori_sum ^= eo[j];
 					++len;
-				}
-				while (ep[j] != i);
+				} while (ep[j] != i);
 				count += len >> 1;
-				if (len & ori_sum)
-				{
+				if (len & ori_sum) {
 					++count;
 					--oricount;
 				}
-			}
-			else if (eo[i])
+			} else if (eo[i]) {
 				++oricount;
+			}
 		}
 	}
 
-	if (oricount & 1)
-	{
+	if (oricount & 1) {
 		++count;
 		--oricount;
 	}
@@ -1038,12 +966,9 @@ int Cube::EdgeCycles() const
 	return count + (oricount ? edge_add[oricount >> 1] : oricount >> 1);
 }
 
-int Cube::GetCornerCycleIndex() const
-{
-	for (int i = 0; i < 6; ++i)
-	{
-		if (cp[i] != i)
-		{
+int Cube::GetCornerCycleIndex() const {
+	for (int i = 0; i < 6; ++i) {
+		if (cp[i] != i) {
 			int j = cp[i];
 			int k = cp[j];
 			return (i << 10) | (j << 7) | (k << 4) | (co[i] << 2) | co[j];
@@ -1052,12 +977,9 @@ int Cube::GetCornerCycleIndex() const
 	return -1;
 }
 
-int Cube::GetEdgeCycleIndex() const
-{
-	for (int i = 0; i < 10; ++i)
-	{
-		if (ep[i] != i)
-		{
+int Cube::GetEdgeCycleIndex() const {
+	for (int i = 0; i < 10; ++i) {
+		if (ep[i] != i) {
 			int j = ep[i];
 			int k = ep[j];
 			return (i << 10) | (j << 6) | (k << 2) | (eo[i] << 1) | eo[j];
@@ -1066,15 +988,16 @@ int Cube::GetEdgeCycleIndex() const
 	return -1;
 }
 
-Cube Cube::CornerCycleCube(int index)
-{
+Cube Cube::CornerCycleCube(int index) {
 	Cube cube;
 	int perm = index >> 4;
 	int ori = index & 0xf;
-	int i = perm >> 6, j = (perm >> 3) & 7, k = perm & 7;
-	int ori_i = ori >> 2, ori_j = ori & 3;
-	if (i != j && i != k && j != k && ori_i < 3 && ori_j < 3)
-	{
+	int i = perm >> 6;
+	int j = (perm >> 3) & 7;
+	int k = perm & 7;
+	int ori_i = ori >> 2;
+	int ori_j = ori & 3;
+	if (i != j && i != k && j != k && ori_i < 3 && ori_j < 3) {
 		cube.cp[i] = j;
 		cube.cp[j] = k;
 		cube.cp[k] = i;
@@ -1085,15 +1008,16 @@ Cube Cube::CornerCycleCube(int index)
 	return cube;
 }
 
-Cube Cube::EdgeCycleCube(int index)
-{
+Cube Cube::EdgeCycleCube(int index) {
 	Cube cube;
 	int perm = index >> 2;
 	int ori = index & 3;
-	int i = perm >> 8, j = (perm >> 4) & 0xf, k = perm & 0xf;
-	int ori_i = ori >> 1, ori_j = ori & 1;
-	if (j < 12 && k < 12 && i != j && i != k && j != k)
-	{
+	int i = perm >> 8;
+	int j = (perm >> 4) & 0xf;
+	int k = perm & 0xf;
+	int ori_i = ori >> 1;
+	int ori_j = ori & 1;
+	if (j < 12 && k < 12 && i != j && i != k && j != k) {
 		cube.ep[i] = j;
 		cube.ep[j] = k;
 		cube.ep[k] = i;

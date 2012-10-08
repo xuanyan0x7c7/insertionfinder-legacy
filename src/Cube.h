@@ -4,8 +4,7 @@
 #include "Formula.h"
 
 
-class Cube
-{
+class Cube {
 	friend class Algorithm;
 private:
 	std::array<int, 8> co;

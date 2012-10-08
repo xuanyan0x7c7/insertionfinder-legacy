@@ -19,8 +19,7 @@ Algorithm::Algorithm() {};
 Algorithm::Algorithm(const Cube &state): state(state), mask(state.Mask()),
 	change_corner(mask & 0xff000), change_edge(mask & 0x00fff) {}
 
-istream& operator>>(istream &in, Algorithm &alg)
-{
+istream& operator>>(istream &in, Algorithm &alg) {
 	in >> alg.state;
 	alg.mask = alg.state.Mask();
 	alg.change_corner = alg.mask & 0xff000;
@@ -28,57 +27,51 @@ istream& operator>>(istream &in, Algorithm &alg)
 	size_t size;
 	in >> size;
 	alg.formula.resize(size);
-	for (size_t i = 0; i < size; ++i)
+	for (size_t i = 0; i < size; ++i) {
 		in >> alg.formula[i];
+	}
 	return in;
 }
 
-ostream& operator<<(ostream &out, const Algorithm &alg)
-{
+ostream& operator<<(ostream &out, const Algorithm &alg) {
 	out << alg.state << endl << alg.formula.size();
-	for (const Formula &f: alg.formula)
+	for (const Formula &f: alg.formula) {
 		out << endl << f;
+	}
 	return out;
 }
 
-void Algorithm::AddFormula(const Formula &f)
-{
+void Algorithm::AddFormula(const Formula &f) {
 	formula.push_back(f);
 }
 
-void Algorithm::AddFormula(Formula &&f)
-{
+void Algorithm::AddFormula(Formula &&f) {
 	formula.push_back(move(f));
 }
 
-const vector<Formula>& Algorithm::GetFormula() const
-{
+const vector<Formula>& Algorithm::GetFormula() const {
 	return formula;
 }
 
-void Algorithm::CopyFormula(const Algorithm &alg)
-{
-	for (const Formula f: alg.formula)
+void Algorithm::CopyFormula(const Algorithm &alg) {
+	for (const Formula f: alg.formula) {
 		this->formula.push_back(f);
+	}
 }
 
-void Algorithm::CopyFormula(Algorithm &alg)
-{
+void Algorithm::CopyFormula(Algorithm &alg) {
 	this->formula.swap(alg.formula);
 }
 
-bool operator==(const Algorithm &lhs, const Algorithm &rhs)
-{
+bool operator==(const Algorithm &lhs, const Algorithm &rhs) {
 	return lhs.state == rhs.state;
 }
 
-bool operator<(const Algorithm &lhs, const Algorithm &rhs)
-{
+bool operator<(const Algorithm &lhs, const Algorithm &rhs) {
 	return lhs.state < rhs.state;
 }
 
-bool operator>(const Algorithm &lhs, const Algorithm &rhs)
-{
+bool operator>(const Algorithm &lhs, const Algorithm &rhs) {
 	return lhs.state > rhs.state;
 }
 

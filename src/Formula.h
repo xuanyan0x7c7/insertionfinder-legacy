@@ -4,8 +4,7 @@
 #include <vector>
 
 
-class Formula
-{
+class Formula {
 	friend class Algorithm;
 private:
 	std::vector<int> move;
