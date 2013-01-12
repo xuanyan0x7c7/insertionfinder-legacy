@@ -8,9 +8,9 @@ using std::max;
 using std::min;
 using std::ostream;
 using std::ostringstream;
+using std::prev;
 using std::string;
 using std::vector;
-
 
 const array<string, 24> Formula::twist_str = {{
 	"", "U", "U2", "U'", "", "D", "D2", "D'", "", "R", "R2", "R'",
@@ -81,10 +81,8 @@ Formula::Formula(const string &str): Formula() {
 		} else if (string(iter, iter + 4) == NISS) {
 			procedure.push_back(NISS);
 			iter += 4;
-		} else if (*iter == ' ') {
-			++iter;
 		} else {
-			break;
+			++iter;
 		}
 	}
 
@@ -185,126 +183,134 @@ Formula::Formula(const string &str): Formula() {
 	if (procedure.empty()) {
 		return;
 	}
-	auto iter = procedure.end();
-	--iter;
+	auto iter = prev(procedure.end());
 
 	while (true) {
 		bool quit_loop = (iter == procedure.begin());
 
 		if (*iter == "x") {
 			for (auto iter2 = iter; iter2 != procedure.end(); ++iter2) {
-				if ((*iter2)[0] == 'U') {
-					(*iter2)[0] = 'F';
-				} else if ((*iter2)[0] == 'D') {
-					(*iter2)[0] = 'B';
-				} else if ((*iter2)[0] == 'F') {
-					(*iter2)[0] = 'D';
-				} else if ((*iter2)[0] == 'B') {
-					(*iter2)[0] = 'U';
+				char &front = (*iter2)[0];
+				if (front == 'U') {
+					front = 'F';
+				} else if (front == 'D') {
+					front = 'B';
+				} else if (front == 'F') {
+					front = 'D';
+				} else if (front == 'B') {
+					front = 'U';
 				}
 			}
 			procedure.erase(iter--);
 		} else if (*iter == "x2") {
 			for (auto iter2 = iter; iter2 != procedure.end(); ++iter2) {
-				if ((*iter2)[0] == 'U') {
-					(*iter2)[0] = 'D';
-				} else if ((*iter2)[0] == 'D') {
-					(*iter2)[0] = 'U';
-				} else if ((*iter2)[0] == 'F') {
-					(*iter2)[0] = 'B';
-				} else if ((*iter2)[0] == 'B') {
-					(*iter2)[0] = 'F';
+				char &front = (*iter2)[0];
+				if (front == 'U') {
+					front = 'D';
+				} else if (front == 'D') {
+					front = 'U';
+				} else if (front == 'F') {
+					front = 'B';
+				} else if (front == 'B') {
+					front = 'F';
 				}
 			}
 			procedure.erase(iter--);
 		} else if (*iter == "x'") {
 			for (auto iter2 = iter; iter2 != procedure.end(); ++iter2) {
-				if ((*iter2)[0] == 'U') {
-					(*iter2)[0] = 'D';
-				} else if ((*iter2)[0] == 'D') {
-					(*iter2)[0] = 'F';
-				} else if ((*iter2)[0] == 'F') {
-					(*iter2)[0] = 'U';
-				} else if ((*iter2)[0] == 'B') {
-					(*iter2)[0] = 'D';
+				char &front = (*iter2)[0];
+				if (front == 'U') {
+					front = 'D';
+				} else if (front == 'D') {
+					front = 'F';
+				} else if (front == 'F') {
+					front = 'U';
+				} else if (front == 'B') {
+					front = 'D';
 				}
 			}
 			procedure.erase(iter--);
 		} else if (*iter == "y") {
 			for (auto iter2 = iter; iter2 != procedure.end(); ++iter2) {
-				if ((*iter2)[0] == 'R') {
-					(*iter2)[0] = 'B';
-				} else if ((*iter2)[0] == 'L') {
-					(*iter2)[0] = 'F';
-				} else if ((*iter2)[0] == 'F') {
-					(*iter2)[0] = 'R';
-				} else if ((*iter2)[0] == 'B') {
-					(*iter2)[0] = 'L';
+				char &front = (*iter2)[0];
+				if (front == 'R') {
+					front = 'B';
+				} else if (front == 'L') {
+					front = 'F';
+				} else if (front == 'F') {
+					front = 'R';
+				} else if (front == 'B') {
+					front = 'L';
 				}
 			}
 			procedure.erase(iter--);
 		} else if (*iter == "y2") {
 			for (auto iter2 = iter; iter2 != procedure.end(); ++iter2) {
-				if ((*iter2)[0] == 'R') {
-					(*iter2)[0] = 'L';
-				} else if ((*iter2)[0] == 'L') {
-					(*iter2)[0] = 'R';
-				} else if ((*iter2)[0] == 'F') {
-					(*iter2)[0] = 'B';
-				} else if ((*iter2)[0] == 'B') {
-					(*iter2)[0] = 'F';
+				char &front = (*iter2)[0];
+				if (front == 'R') {
+					front = 'L';
+				} else if (front == 'L') {
+					front = 'R';
+				} else if (front == 'F') {
+					front = 'B';
+				} else if (front == 'B') {
+					front = 'F';
 				}
 			}
 			procedure.erase(iter--);
 		} else if (*iter == "y'") {
 			for (auto iter2 = iter; iter2 != procedure.end(); ++iter2) {
-				if ((*iter2)[0] == 'R') {
-					(*iter2)[0] = 'F';
-				} else if ((*iter2)[0] == 'L') {
-					(*iter2)[0] = 'B';
-				} else if ((*iter2)[0] == 'F') {
-					(*iter2)[0] = 'L';
-				} else if ((*iter2)[0] == 'B') {
-					(*iter2)[0] = 'R';
+				char &front = (*iter2)[0];
+				if (front == 'R') {
+					front = 'F';
+				} else if (front == 'L') {
+					front = 'B';
+				} else if (front == 'F') {
+					front = 'L';
+				} else if (front == 'B') {
+					front = 'R';
 				}
 			}
 			procedure.erase(iter--);
 		} else if (*iter == "z") {
 			for (auto iter2 = iter; iter2 != procedure.end(); ++iter2) {
-				if ((*iter2)[0] == 'U') {
-					(*iter2)[0] = 'L';
-				} else if ((*iter2)[0] == 'D') {
-					(*iter2)[0] = 'R';
-				} else if ((*iter2)[0] == 'R') {
-					(*iter2)[0] = 'U';
-				} else if ((*iter2)[0] == 'L') {
-					(*iter2)[0] = 'D';
+				char &front = (*iter2)[0];
+				if (front == 'U') {
+					front = 'L';
+				} else if (front == 'D') {
+					front = 'R';
+				} else if (front == 'R') {
+					front = 'U';
+				} else if (front == 'L') {
+					front = 'D';
 				}
 			}
 			procedure.erase(iter--);
 		} else if (*iter == "z2") {
 			for (auto iter2 = iter; iter2 != procedure.end(); ++iter2) {
-				if ((*iter2)[0] == 'U') {
-					(*iter2)[0] = 'D';
-				} else if ((*iter2)[0] == 'D') {
-					(*iter2)[0] = 'U';
-				} else if ((*iter2)[0] == 'R') {
-					(*iter2)[0] = 'L';
-				} else if ((*iter2)[0] == 'L') {
-					(*iter2)[0] = 'R';
+				char &front = (*iter2)[0];
+				if (front == 'U') {
+					front = 'D';
+				} else if (front == 'D') {
+					front = 'U';
+				} else if (front == 'R') {
+					front = 'L';
+				} else if (front == 'L') {
+					front = 'R';
 				}
 			}
 			procedure.erase(iter--);
 		} else if (*iter == "z'") {
 			for (auto iter2 = iter; iter2 != procedure.end(); ++iter2) {
-				if ((*iter2)[0] == 'U') {
-					(*iter2)[0] = 'R';
-				} else if ((*iter2)[0] == 'D') {
-					(*iter2)[0] = 'L';
-				} else if ((*iter2)[0] == 'R') {
-					(*iter2)[0] = 'D';
-				} else if ((*iter2)[0] == 'L') {
-					(*iter2)[0] = 'R';
+				char &front = (*iter2)[0];
+				if (front == 'U') {
+					front = 'R';
+				} else if (front == 'D') {
+					front = 'L';
+				} else if (front == 'R') {
+					front = 'D';
+				} else if (front == 'L') {
+					front = 'R';
 				}
 			}
 			procedure.erase(iter--);
@@ -332,12 +338,15 @@ Formula::Formula(const string &str): Formula() {
 			NISS_neg.insert(NISS_neg.end(), iter, iter2);
 		}
 		iter = iter2;
+		if (*iter2 == NISS) {
+			++iter;
+		}
 		direction = !direction;
 	}
-
-	for (auto iter = NISS_pos.cbegin(); iter != NISS_pos.cend(); ++iter) {
+	
+	for (const string &str: NISS_pos) {
 		for (size_t i = 0; i < 24; ++i) {
-			if (*iter == twist_str[i]) {
+			if (str == twist_str[i]) {
 				move.push_back(i);
 				break;
 			}
@@ -407,7 +416,7 @@ size_t Formula::CancelMoves() {
 					move[j - 1] = move[j];
 					--j;
 				} else {
-					move[j - 1] = (move[j - 1] & -4) + po;
+					move[j - 1] = (move[j - 1] & ~3) + po;
 				}
 			} else {
 				move[++j] = move[i++];
@@ -417,7 +426,7 @@ size_t Formula::CancelMoves() {
 			if (po == 0) {
 				--j;
 			} else {
-				move[j] = (move[j] & -4) + po;
+				move[j] = (move[j] & ~3) + po;
 			}
 			if (index > j + 1) {
 				index = j + 1;
@@ -442,17 +451,30 @@ void Formula::SwapAdjacentMove(size_t index) {
 }
 
 string Formula::str() const {
-	return str(0, length());
+	if (move.empty()) {
+		return "";
+	}
+	ostringstream str;
+	str << twist_str[move.front()];
+	for (auto iter = move.begin() + 1; iter != move.end(); ++iter) {
+		str << ' ' << twist_str[*iter];
+	}
+	return str.str();
 }
 
-string Formula::str(size_t start, size_t end) const {
+string Formula::str(size_t start, size_t end, bool pos) const {
 	if (start >= end) {
 		return "";
 	}
 	ostringstream str;
-	str << twist_str[move[start]];
-	for (size_t k = start; ++k < end;) {
-		str << ' ' << twist_str[move[k]];
+	if (pos) {
+		for (size_t k = start; k < end; ++k) {
+			str << twist_str[move[k]] << ' ';
+		}
+	} else {
+		for (size_t k = start; k < end; ++k) {
+			str << ' ' << twist_str[move[k]];
+		}
 	}
 	return str.str();
 }

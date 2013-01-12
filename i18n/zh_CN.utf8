@@ -1,0 +1,13 @@
+<color>打乱公式:</color> $
+<color>还原步骤:</color> $
+已经还原
+有parity
+<color>需要插入</color>$个角块三循环
+<color>需要插入</color>$个棱块三循环
+<color>需要插入</color>$个角块三循环<color>和</color>$个棱块三循环
+找不到给力的插入
+<color>在</color>@$<color>处插入:</color> $
+<color>插入第</color>$<color>个后:</color> $<color>[@$]</color>$
+<color>最少步数:</color> $	<color>消去</color>$<color>步</color>
+<color>完整解法:</color> $
+<color>用时</color>$<color>/</color>$<color>微秒</color>

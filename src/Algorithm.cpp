@@ -33,14 +33,6 @@ istream& operator>>(istream &in, Algorithm &alg) {
 	return in;
 }
 
-ostream& operator<<(ostream &out, const Algorithm &alg) {
-	out << alg.state << endl << alg.formula.size();
-	for (const Formula &f: alg.formula) {
-		out << endl << f;
-	}
-	return out;
-}
-
 void Algorithm::AddFormula(const Formula &f) {
 	formula.push_back(f);
 }
@@ -61,17 +53,5 @@ void Algorithm::CopyFormula(const Algorithm &alg) {
 
 void Algorithm::CopyFormula(Algorithm &alg) {
 	this->formula.swap(alg.formula);
-}
-
-bool operator==(const Algorithm &lhs, const Algorithm &rhs) {
-	return lhs.state == rhs.state;
-}
-
-bool operator<(const Algorithm &lhs, const Algorithm &rhs) {
-	return lhs.state < rhs.state;
-}
-
-bool operator>(const Algorithm &lhs, const Algorithm &rhs) {
-	return lhs.state > rhs.state;
 }
 

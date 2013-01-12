@@ -2,6 +2,7 @@
 #include <array>
 #include <utility>
 #include <vector>
+#include <chrono>
 #include "Algorithm.h"
 
 
@@ -21,7 +22,6 @@ private:
 	std::array<Formula, 20> insertion;
 	std::array<size_t, 20> insert_place;
 	int cycles_inserted = 0;
-	const std::string &language;
 public:
 	enum {alg_3CP = 0x01, alg_2x2CP = 0x02, alg_CO = 0x04, alg_3EP = 0x08,
 		alg_2x2EP = 0x10, alg_EO = 0x20, alg_edge = 0x40, alg_other = 0x80};
@@ -32,10 +32,10 @@ private:
 	Find& operator=(Find&&);
 	~Find();
 private:
-	Find(const std::string&);
+	Find();
 public:
-	static std::pair<std::string, long>
-	Solve(const Formula&, const Formula&, int alg_include, std::string);
+	static std::pair<std::string, int64_t>
+	Solve(const Formula&, const Formula&, int alg_include);
 private:
 	void Search(int ,int, int, int);
 	void SearchCorner(int, int, int);

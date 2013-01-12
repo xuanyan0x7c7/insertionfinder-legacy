@@ -1,18 +1,20 @@
 #include <chrono>
 #include <fstream>
 #include <sstream>
+#include "Color.h"
 #include "Find.h"
+#include "I18N.h"
 using std::chrono::duration_cast;
 using std::chrono::microseconds;
 using std::chrono::steady_clock;
-using std::endl;
 using std::ifstream;
+using std::make_pair;
 using std::move;
 using std::ostringstream;
 using std::pair;
 using std::string;
 #ifndef LIBRARY_PATH
-	#define LIBRARY_PATH "/usr/local/lib"
+	#define LIBRARY_PATH ""
 #endif
 
 
@@ -22,26 +24,20 @@ Find& Find::operator=(const Find&) = delete;
 Find& Find::operator=(Find&&) = delete;
 Find::~Find() = default;
 
-Find::Find(const string &language): language(language) {
+Find::Find() {
 	corner_cycle_index.fill(-1);
 	edge_cycle_index.fill(-1);
 }
 
-pair<string, long>
-Find::Solve(const Formula &scramble, const Formula &solve, int include,
-	string language) {
-	Find finder(language);
-	bool corner_only = false, edge_only = false;
-	if ((include | 0x7) == 0x7) {
-		corner_only = true;
-	} else if ((include | 0x78) == 0x78) {
-		edge_only = true;
-	}
+pair<string, int64_t>
+Find::Solve(const Formula &scramble, const Formula &solve, int include) {
+	Find finder;
+	bool corner_only = (include | 0x7) == 0x7;
+	bool edge_only = (include | 0x78) == 0x78;
 	for (int i = 0; i < 8; ++i) {
 		if (include & (1 << i)) {
 			static const string num("01234567");
-			ifstream in((LIBRARY_PATH + string("/insertionfinder/AlgFiles/")
-				+ num[i]).c_str());
+			ifstream in(LIBRARY_PATH + string("AlgFiles/") + num[i]);
 			size_t alg_count;
 			in >> alg_count;
 			size_t recent_size = finder.algorithm.size();
@@ -73,11 +69,7 @@ Find::Solve(const Formula &scramble, const Formula &solve, int include,
 	cube.Twist(solve);
 	if ((corner_only && cube.EdgeCycles() > 0)
 		|| (edge_only && cube.CornerCycles() > 0)) {
-		if (language == "zh_cn") {
-			return make_pair(string("找不到给力的插入"), 0l);
-		} else {
-			return make_pair(string("No proper insertions found"), 0l);
-		}
+		return make_pair(I18N::NoProperInsertionsFound(), 0);
 	}
 	auto start = steady_clock::now();
 	if (corner_only) {
@@ -722,54 +714,27 @@ void Find::SearchEdge(int depth, int edge, int searched) {
 
 string Find::PrintAnswer() {
 	ostringstream str;
-	if (language == "zh_cn") {
-		if (fewest_moves == 0xffffffff) {
-			str << "找不到给力的插入";
-		} else {
-			str << best_solve[0].str(0, best_insert_place[0]) << " [@1] "
-				<< best_solve[0].str(best_insert_place[0], best_solve[0].length())
-				<< endl << "在@1处插入: " << best_insertion[0].str() << endl;
-			for (int i = 1; i < cycles_inserted; ++i) {
-				str << "插入第" << i << "个后: "
-				 	<< best_solve[i].str(0, best_insert_place[i])
-					<< " [@" << i + 1 << "] "
-					<< best_solve[i].str(best_insert_place[i],
-										best_solve[i].length())
-					<< endl << "在@" << i + 1 << "处插入: "
-					<< best_insertion[i].str() << endl;
-			}
-			int cancelled_moves = solve[0].length() - best_answer.length();
-			for (int i = 0; i < cycles_inserted; ++i) {
-				cancelled_moves += best_insertion[i].length();
-			}
-			str << "最少步数: " << fewest_moves
-				<< "\t消去" << cancelled_moves << "步" << endl
-				<< "完整解法: " << best_answer.str();
-		}
+	if (fewest_moves == 0xffffffff) {
+		str << I18N::NoProperInsertionsFound();
 	} else {
-		if (fewest_moves == 0xffffffff) {
-			str << "No proper insertions found";
-		} else {
-			str << best_solve[0].str(0, best_insert_place[0]) << " [@1] "
-				<< best_solve[0].str(best_insert_place[0], best_solve[0].length())
-				<< endl << "Insert at @1: " << best_insertion[0].str() << endl;
-			for (int i = 1; i < cycles_inserted; ++i) {
-				str << "After insertion No." << i << ": "
-				 	<< best_solve[i].str(0, best_insert_place[i])
-					<< " [@" << i + 1 << "] "
-					<< best_solve[i].str(best_insert_place[i],
-										best_solve[i].length())
-					<< endl << "Insert at @" << i + 1 << ": "
-					<< best_insertion[i].str() << endl;
-			}
-			int cancelled_moves = solve[0].length() - best_answer.length();
-			for (int i = 0; i < cycles_inserted; ++i) {
-				cancelled_moves += best_insertion[i].length();
-			}
-			str << "Fewest moves: " << fewest_moves
-				<< "\t" << cancelled_moves << " moves cancelled" << endl
-				<< "The final solution: " << best_answer.str();
+		str << best_solve[0].str(0, best_insert_place[0], true)
+			<< green << "[@1]" << reset
+			<< best_solve[0].str(best_insert_place[0], best_solve[0].length(),
+				false)
+			<< '\n' << I18N::InsertAt(1, best_insertion[0].str()) << '\n';
+		for (int i = 1; i < cycles_inserted; ++i) {
+			str << I18N::AfterInsertion(i, 
+					best_solve[i].str(0, best_insert_place[i], true),
+					best_solve[i].str(best_insert_place[i],
+						best_solve[i].length(), false)) << '\n'
+				<< I18N::InsertAt(i + 1, best_insertion[i].str()) << '\n';
 		}
+		int cancelled_moves = solve[0].length() - best_answer.length();
+		for (int i = 0; i < cycles_inserted; ++i) {
+			cancelled_moves += best_insertion[i].length();
+		}
+		str << I18N::Moves(fewest_moves, cancelled_moves) << '\n'
+			<< I18N::FinalSolution(best_answer.str());
 	}
 	return str.str();
 }

@@ -21,14 +21,10 @@ public:
 public:
 	Algorithm(const Cube&);
 	friend std::istream& operator>>(std::istream&, Algorithm&);
-	friend std::ostream& operator<<(std::ostream&, const Algorithm&);
 	void AddFormula(const Formula&);
 	void AddFormula(Formula&&);
 	const std::vector<Formula>& GetFormula() const;
 	void CopyFormula(const Algorithm&);
 	void CopyFormula(Algorithm&);
-	friend bool operator==(const Algorithm&, const Algorithm&);
-	friend bool operator<(const Algorithm&, const Algorithm&);
-	friend bool operator>(const Algorithm&, const Algorithm&);
 };
 

@@ -1,20 +1,22 @@
 #include <array>
 #include <fstream>
 #include <iostream>
-#include <set>
+#include <map>
 #include <string>
 #include <unistd.h>
 #include <utility>
+#include <vector>
 #include "Init.h"
 #include "Algorithm.h"
 using std::array;
 using std::endl;
 using std::ifstream;
 using std::ios;
+using std::map;
 using std::move;
 using std::ofstream;
-using std::set;
 using std::string;
+using std::vector;
 
 
 void InitAlgorithmSystem() {
@@ -25,26 +27,18 @@ void InitAlgorithmSystem() {
 		"Others"};
 	static constexpr int file_index[20] =
 		{0, 3, 3, 3, 3, 3, 1, 1, 1, 4, 4, 4, 4, 4, 2, 2, 5, 6, 6, 7};
-	set<Algorithm> algorithm_set[8];
+	map<Cube, vector<Formula>> algorithm_set[8];
 
 	for (int i = 0; i < 20; ++i) {
-		set<Algorithm> &s = algorithm_set[file_index[i]];
-		ifstream file(("Algorithm/" + alg_file[i]).c_str());
+		map<Cube, vector<Formula>> &s = algorithm_set[file_index[i]];
+		ifstream file("Algorithm/" + alg_file[i]);
 		string str;
 		while (getline(file, str)) {
 			Formula f(str);
 			f.Resize();
 			Cube cube(f);
 			if (!cube.IsParity()) {
-				auto iter = s.find(cube);
-				if (iter == s.end()) {
-					Algorithm alg(cube);
-					alg.AddFormula(move(f));
-					s.insert(alg);
-				} else {
-					Algorithm &alg = const_cast<Algorithm&>(*iter);
-					alg.AddFormula(move(f));
-				}
+				s[cube].push_back(move(f));
 			}
 		}
 		file.close();
@@ -52,12 +46,14 @@ void InitAlgorithmSystem() {
 
 	for (int i = 0; i < 8; ++i) {
 		static const string num("01234567");
-		ofstream file((string("AlgFiles/") + num[i]).c_str());
+		ofstream file(string("AlgFiles/") + num[i]);
 		file << algorithm_set[i].size() << endl;
-		for (const Algorithm& alg: algorithm_set[i]) {
-			file << alg << endl;
+		for (const auto &alg: algorithm_set[i]) {
+			file << alg.first << endl << alg.second.size() << endl;
+			for (const Formula &f: alg.second) {
+				file << f << endl;
+			}
 		}
 		file.close();
 	}
 }
-

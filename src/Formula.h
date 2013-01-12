@@ -29,7 +29,7 @@ public:
 	size_t Insert(const Formula&, size_t);
 	void SwapAdjacentMove(size_t);
 	std::string str() const;
-	std::string str(size_t, size_t) const;
+	std::string str(size_t, size_t, bool) const;
 	void Resize();
 };
 
