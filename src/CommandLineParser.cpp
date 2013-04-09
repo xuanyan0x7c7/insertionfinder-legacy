@@ -1,19 +1,19 @@
-#include "CommandLineResolver.h"
+#include "CommandLineParser.h"
 using std::make_pair;
 using std::pair;
 using std::string;
 using std::vector;
 
 
-vector<pair<string, string>> Resolve(int argc, char **argv) {
+vector<pair<string, string>> Parse(int argc, char **argv) {
 	vector<string> commandline;
 	for (int i = 1; i < argc; ++i) {
 		commandline.push_back(argv[i]);
 	}
-	return Resolve(commandline);
+	return Parse(commandline);
 }
 
-vector<pair<string, string>> Resolve(const vector<string>& commandline) {
+vector<pair<string, string>> Parse(const vector<string>& commandline) {
 	vector<pair<string, string>> command;
 	for (const string& s: commandline) {
 		if (s[0] != '-') {
@@ -29,9 +29,8 @@ vector<pair<string, string>> Resolve(const vector<string>& commandline) {
 						str.substr(pos + 1)));
 				}
 			} else {
-				for (size_t pos = 1; pos < s.length(); ++pos) {
-					string str(1, s[pos]);
-					command.push_back(make_pair(str, ""));
+				for (auto iter = s.cbegin() + 1; iter != s.cend(); ++iter) {
+					command.push_back(make_pair(string(1, *iter), ""));
 				}
 			}
 		}

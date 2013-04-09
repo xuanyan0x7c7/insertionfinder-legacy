@@ -4,8 +4,8 @@
 #include <vector>
 
 
-std::vector<std::pair<std::string, std::string>> Resolve(int, char**);
+std::vector<std::pair<std::string, std::string>> Parse(int, char**);
 
 std::vector<std::pair<std::string, std::string>>
-Resolve(const std::vector<std::string>&);
+Parse(const std::vector<std::string>&);
 
