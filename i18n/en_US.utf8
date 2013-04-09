@@ -8,6 +8,6 @@ $ corner 3-cycle <color>and</color> $ edge 3-cycle insertions <color>needed</col
 No proper insertions found
 <color>Insert at</color> @$<color>:</color> $
 <color>After insertion No.</color>$<color>:</color> $<color>[@$]</color>$
-<color>Fewest moves:</color> $	$ moves <color>cancelled</color>
+<color>Fewest moves:</color> $	$ <color>move(s) cancelled</color>
 <color>The final solution:</color> $
 <color>Runtime:</color> $<color>/</color>$ <color>microseconds</color>
