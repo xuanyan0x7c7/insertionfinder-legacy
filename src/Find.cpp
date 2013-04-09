@@ -1,6 +1,11 @@
 #include <chrono>
+#include <cmath>
 #include <fstream>
+#include <functional>
+#include <mutex>
 #include <sstream>
+#include <thread>
+#include <vector>
 #include "Color.h"
 #include "Find.h"
 #include "I18N.h"
@@ -8,30 +13,74 @@ using std::chrono::duration_cast;
 using std::chrono::microseconds;
 using std::chrono::steady_clock;
 using std::ifstream;
+using std::function;
+using std::int64_t;
+using std::lock_guard;
 using std::make_pair;
+using std::mem_fn;
 using std::move;
+using std::mutex;
 using std::ostringstream;
 using std::pair;
+using std::ref;
+using std::size_t;
 using std::string;
+using std::thread;
+using std::vector;
 #ifndef LIBRARY_PATH
 	#define LIBRARY_PATH ""
 #endif
 
 
-Find::Find(const Find&) = delete;
-Find::Find(Find&&) = delete;
-Find& Find::operator=(const Find&) = delete;
-Find& Find::operator=(Find&&) = delete;
+Find::Find(const Find&) = default;
+Find::Find(Find&&) = default;
+Find& Find::operator=(const Find&) = default;
+Find& Find::operator=(Find&&) = default;
 Find::~Find() = default;
+
+size_t Find::fewest_moves;
+int Find::cycles_inserted;
+Formula Find::best_answer;
+std::array<Formula, 20> Find::best_solve;
+std::array<Formula, 20> Find::best_insertion;
+std::array<size_t, 20> Find::best_insert_place;
 
 Find::Find() {
 	corner_cycle_index.fill(-1);
 	edge_cycle_index.fill(-1);
 }
 
+void Find::ResetFewestMoves() {
+	fewest_moves = 0xffffffff;
+	cycles_inserted = 0;
+}
+
+namespace {
+	mutex fm_mutex;
+}
+
+void Find::SetFewestMoves(size_t moves, int cycles) {
+	if (moves < fewest_moves
+			|| (moves == fewest_moves && cycles < cycles_inserted)) {
+		lock_guard<mutex> lock(fm_mutex);
+		if (moves < fewest_moves
+				|| (moves == fewest_moves && cycles < cycles_inserted)) {
+			cycles_inserted = cycles;
+			best_answer = solve[cycles];
+			fewest_moves = moves;
+			for (int i = 0; i < cycles; ++i) {
+				best_solve[i] = solve[i];
+				best_insert_place[i] = insert_place[i];
+				best_insertion[i] = insertion[i];
+			}
+		}
+	}
+}
+
 pair<string, int64_t>
 Find::Solve(const Formula &scramble, const Formula &solve, int include) {
-	Find finder;
+	static const size_t cores = thread::hardware_concurrency();
+	vector<Find> finder(cores);
 	bool corner_only = (include | 0x7) == 0x7;
 	bool edge_only = (include | 0x78) == 0x78;
 	for (int i = 0; i < 8; ++i) {
@@ -40,30 +89,33 @@ Find::Solve(const Formula &scramble, const Formula &solve, int include) {
 			ifstream in(LIBRARY_PATH + string("AlgFiles/") + num[i]);
 			size_t alg_count;
 			in >> alg_count;
-			size_t recent_size = finder.algorithm.size();
+			size_t recent_size = finder[0].algorithm.size();
 			size_t new_size = recent_size + alg_count;
-			finder.algorithm.resize(new_size);
+			finder[0].algorithm.resize(new_size);
 			for (size_t i = recent_size; i < new_size; ++i) {
-				in >> finder.algorithm[i];
+				in >> finder[0].algorithm[i];
 			}
 			in.close();
 		}
 	}
-	for (size_t i = 0; i < finder.algorithm.size(); ++i) {
-		const Cube &state = finder.algorithm[i].state;
+	for (size_t i = 0; i < finder[0].algorithm.size(); ++i) {
+		const Cube &state = finder[0].algorithm[i].state;
 		int corner_cycles = state.CornerCycles();
 		int edge_cycles = state.EdgeCycles();
 		if (corner_cycles == 1 && edge_cycles == 0) {
-			finder.corner_cycle_index[state.GetCornerCycleIndex()] = i;
+			finder[0].corner_cycle_index[state.GetCornerCycleIndex()] = i;
 		} else if (corner_cycles == 0 && edge_cycles == 1) {
-			finder.edge_cycle_index[state.GetEdgeCycleIndex()] = i;
+			finder[0].edge_cycle_index[state.GetEdgeCycleIndex()] = i;
 		}
 	}
 
-	finder.scramble = scramble;
-	finder.scramble_cube.Twist(scramble);
-	finder.inv_scramble_cube.Twist(scramble, false);
-	finder.solve[0] = solve;
+	finder[0].scramble = scramble;
+	finder[0].scramble_cube.Twist(scramble);
+	finder[0].inv_scramble_cube.Twist(scramble, false);
+	finder[0].solve[0] = solve;
+	for (size_t i = 1; i < cores; ++i) {
+		finder[i] = finder[0];
+	}
 	
 	Cube cube(scramble);
 	cube.Twist(solve);
@@ -71,17 +123,38 @@ Find::Solve(const Formula &scramble, const Formula &solve, int include) {
 		|| (edge_only && cube.CornerCycles() > 0)) {
 		return make_pair(I18N::NoProperInsertionsFound(), 0);
 	}
+	int moves = solve.length();
+	int cycles[2] = {cube.CornerCycles(), cube.EdgeCycles()};
+	ResetFewestMoves();
+	vector<int> split(cores + 1);
+	split[0] = -1;
+	split[cores] = moves;
+	for (size_t i = 1; i < cores; ++i) {
+		split[cores - i] = static_cast<int>(moves * (1 - pow(static_cast<double>(i) / cores, 0.5)));
+	}
 	auto start = steady_clock::now();
+	vector<thread> t(cores);
 	if (corner_only) {
-		finder.SearchCorner(0, cube.CornerCycles(), 0);
+		static function<void(Find&, int, int, int, int)> f = mem_fn(&Find::SearchCorner);
+		for (size_t i = 0; i < cores; ++i) {
+			t[i] = move(thread(f, ref(finder[i]), 0, cycles[0], split[i] + 1, split[i + 1]));
+		}
 	} else if (edge_only) {
-		finder.SearchEdge(0, cube.EdgeCycles(), 0);
+		static function<void(Find&, int, int, int, int)> f = mem_fn(&Find::SearchEdge);
+		for (size_t i = 0; i < cores; ++i) {
+			t[i] = move(thread(f, ref(finder[i]), 0, cycles[1], split[i] + 1, split[i + 1]));
+		}
 	} else {
-		finder.Search(0, cube.CornerCycles(), cube.EdgeCycles(), 0);
+		static function<void(Find&, int, int, int, int, int)> f = mem_fn(&Find::Search);
+		for (size_t i = 0; i < cores; ++i) {
+			t[i] = move(thread(f, ref(finder[i]), 0, cycles[0], cycles[1], split[i] + 1, split[i + 1]));
+		}
+	}
+	for (size_t i = 0; i < cores; ++i) {
+		t[i].join();
 	}
 	auto end = steady_clock::now();
-	return make_pair(finder.PrintAnswer(),
-		duration_cast<microseconds>(end - start).count());
+	return make_pair(PrintAnswer(), duration_cast<microseconds>(end - start).count());
 }
 
 namespace {
@@ -101,12 +174,12 @@ namespace {
 		12, 15, 14, 13, 16, 19, 18, 17, 20, 23, 22, 21};
 }
 
-void Find::Search(int depth, int corner, int edge, int searched) {
+void Find::Search(int depth, int corner, int edge, int begin, int end) {
 	int moves = solve[depth].length();
 	if (corner == 1 && edge == 0) {
 		int index;
-		for (int i = searched; i <= moves; ++i) {
-			if (i == searched) {
+		for (int i = begin; i <= end; ++i) {
+			if (i == begin) {
 				Cube state;
 				state.TwistCorner(solve[depth], 0, i, false);
 				state.TwistCorner(inv_scramble_cube);
@@ -122,17 +195,7 @@ void Find::Search(int depth, int corner, int edge, int searched) {
 					insertion[depth] = j;
 					solve[depth + 1] = solve[depth];
 					solve[depth + 1].Insert(j, i);
-					if (solve[depth + 1].length() < fewest_moves
-						|| (solve[depth + 1].length() == fewest_moves
-						&& depth + 1 < cycles_inserted)) {
-						fewest_moves = (best_answer =
-							solve[cycles_inserted = depth + 1]).length();
-						for (int k = 0; k <= depth; ++k) {
-							best_solve[k] = solve[k];
-							best_insert_place[k] = insert_place[k];
-							best_insertion[k] = insertion[k];
-						}
-					}
+					SetFewestMoves(solve[depth + 1].length(), depth + 1);
 				}
 			}
 			if (i > 0 && i < moves
@@ -149,19 +212,7 @@ void Find::Search(int depth, int corner, int edge, int searched) {
 						insertion[depth] = j;
 						solve[depth + 1] = solve[depth];
 						solve[depth + 1].Insert(j, i);
-						if (solve[depth + 1].length() < fewest_moves
-							|| (solve[depth + 1].length() == fewest_moves
-								&& depth + 1 < cycles_inserted))
-						{
-							fewest_moves = (best_answer =
-								solve[cycles_inserted = depth + 1]).length();
-							for (int k = 0; k <= depth; ++k)
-							{
-								best_solve[k] = solve[k];
-								best_insert_place[k] = insert_place[k];
-								best_insertion[k] = insertion[k];
-							}
-						}
+						SetFewestMoves(solve[depth + 1].length(), depth + 1);
 					}
 				}
 				solve[depth].SwapAdjacentMove(i);
@@ -169,8 +220,8 @@ void Find::Search(int depth, int corner, int edge, int searched) {
 		}
 	} else if (corner == 0 && edge == 1) {
 		int index;
-		for (int i = searched; i <= moves; ++i) {
-			if (i == searched) {
+		for (int i = begin; i <= end; ++i) {
+			if (i == begin) {
 				Cube state;
 				state.TwistEdge(solve[depth], 0, i, false);
 				state.TwistEdge(inv_scramble_cube);
@@ -186,17 +237,7 @@ void Find::Search(int depth, int corner, int edge, int searched) {
 					insertion[depth] = j;
 					solve[depth + 1] = solve[depth];
 					solve[depth + 1].Insert(j, i);
-					if (solve[depth + 1].length() < fewest_moves
-						|| (solve[depth + 1].length() == fewest_moves
-						&& depth + 1 < cycles_inserted)) {
-						fewest_moves = (best_answer =
-							solve[cycles_inserted = depth + 1]).length();
-						for (int k = 0; k <= depth; ++k) {
-							best_solve[k] = solve[k];
-							best_insert_place[k] = insert_place[k];
-							best_insertion[k] = insertion[k];
-						}
-					}
+					SetFewestMoves(solve[depth + 1].length(), depth + 1);
 				}
 			}
 			if (i > 0 && i < moves
@@ -213,17 +254,7 @@ void Find::Search(int depth, int corner, int edge, int searched) {
 						insertion[depth] = j;
 						solve[depth + 1] = solve[depth];
 						solve[depth + 1].Insert(j, i);
-						if (solve[depth + 1].length() < fewest_moves
-							|| (solve[depth + 1].length() == fewest_moves
-							&& depth + 1 < cycles_inserted)) {
-							fewest_moves = (best_answer =
-								solve[cycles_inserted = depth + 1]).length();
-							for (int k = 0; k <= depth; ++k) {
-								best_solve[k] = solve[k];
-								best_insert_place[k] = insert_place[k];
-								best_insertion[k] = insertion[k];
-							}
-						}
+						SetFewestMoves(solve[depth + 1].length(), depth + 1);
 					}
 				}
 				solve[depth].SwapAdjacentMove(i);
@@ -232,8 +263,8 @@ void Find::Search(int depth, int corner, int edge, int searched) {
 	} else {
 		int algs = algorithm.size();
 		Cube state;
-		for (int i = searched; i <= moves; ++i) {
-			if (i == searched) {
+		for (int i = begin; i <= end; ++i) {
+			if (i == begin) {
 				state.Twist(solve[depth], i, moves);
 				state.Twist(scramble_cube);
 				state.Twist(solve[depth], 0, i);
@@ -262,35 +293,26 @@ void Find::Search(int depth, int corner, int edge, int searched) {
 						insertion[depth] = k;
 						solve[depth + 1] = solve[depth];
 						solve[depth + 1].Insert(k, i);
-						if (solve[depth + 1].length() < fewest_moves
-							|| (solve[depth + 1].length() == fewest_moves
-							&& depth + 1 < cycles_inserted)) {
-							fewest_moves = (best_answer =
-								solve[cycles_inserted = depth + 1]).length();
-							for (int l = 0; l <= depth; ++l) {
-								best_solve[l] = solve[l];
-								best_insert_place[l] = insert_place[l];
-								best_insertion[l] = insertion[l];
-							}
-						}
+						SetFewestMoves(solve[depth + 1].length(), depth + 1);
 					}
 				} else {
 					for (const Formula &k: algorithm[j].GetFormula()) {
 						solve[depth + 1] = solve[depth];
-						int searched_new = solve[depth + 1].Insert(k, i);
+						int begin_new = solve[depth + 1].Insert(k, i);
 						if (i < 2 || solve[depth][i - 2] >> 3
 							!= solve[depth][i - 1] >> 3) {
-							if (searched_new < i) {
+							if (begin_new < i) {
 								continue;
 							}
-						} else if (searched_new < i - 1) {
+						} else if (begin_new < i - 1) {
 							continue;
 						}
 						if (solve[depth + 1].length() + cornerX + edgeX
 							< fewest_moves) {
 							insertion[depth] = k;
 							insert_place[depth] = i;
-							Search(depth + 1, cornerX, edgeX, searched_new);
+							Search(depth + 1, cornerX, edgeX, begin_new,
+								solve[depth + 1].length());
 						}
 					}
 				}
@@ -324,28 +346,19 @@ void Find::Search(int depth, int corner, int edge, int searched) {
 							insertion[depth] = k;
 							solve[depth + 1] = solve[depth];
 							solve[depth + 1].Insert(k, i);
-							if (solve[depth + 1].length() < fewest_moves
-								|| (solve[depth + 1].length() == fewest_moves
-								&& depth + 1 < cycles_inserted)) {
-								fewest_moves = (best_answer = solve
-									[cycles_inserted = depth + 1]).length();
-								for (int l = 0; l <= depth; ++l) {
-									best_solve[l] = solve[l];
-									best_insert_place[l] = insert_place[l];
-									best_insertion[l] = insertion[l];
-								}
-							}
+							SetFewestMoves(solve[depth + 1].length(), depth + 1);
 						}
 					} else {
 						for (const Formula &k: algorithm[j].GetFormula()) {
 							solve[depth + 1] = solve[depth];
-							int searched_new = solve[depth + 1].Insert(k, i);
-							if (searched_new >= i
+							int begin_new = solve[depth + 1].Insert(k, i);
+							if (begin_new >= i
 								&& solve[depth + 1].length() + cornerX + edgeX
 								< fewest_moves) {
 								insertion[depth] = k;
 								insert_place[depth] = i;
-								Search(depth + 1, cornerX, edgeX, searched_new);
+								Search(depth + 1, cornerX, edgeX, begin_new,
+									solve[depth + 1].length());
 							}
 						}
 					}
@@ -356,12 +369,12 @@ void Find::Search(int depth, int corner, int edge, int searched) {
 	}
 }
 
-void Find::SearchCorner(int depth, int corner, int searched) {
+void Find::SearchCorner(int depth, int corner, int begin, int end) {
 	int moves = solve[depth].length();
 	if (corner == 1) {
 		int index;
-		for (int i = searched; i <= moves; ++i) {
-			if (i == searched) {
+		for (int i = begin; i <= end; ++i) {
+			if (i == begin) {
 				Cube state;
 				state.TwistCorner(solve[depth], 0, i, false);
 				state.TwistCorner(inv_scramble_cube);
@@ -377,17 +390,7 @@ void Find::SearchCorner(int depth, int corner, int searched) {
 					insertion[depth] = j;
 					solve[depth + 1] = solve[depth];
 					solve[depth + 1].Insert(j, i);
-					if (solve[depth + 1].length() < fewest_moves
-						|| (solve[depth + 1].length() == fewest_moves
-						&& depth + 1 < cycles_inserted)) {
-						fewest_moves = (best_answer =
-							solve[cycles_inserted = depth + 1]).length();
-						for (int k = 0; k <= depth; ++k) {
-							best_solve[k] = solve[k];
-							best_insert_place[k] = insert_place[k];
-							best_insertion[k] = insertion[k];
-						}
-					}
+					SetFewestMoves(solve[depth + 1].length(), depth + 1);
 				}
 			}
 			if (i > 0 && i < moves
@@ -404,17 +407,7 @@ void Find::SearchCorner(int depth, int corner, int searched) {
 						insertion[depth] = j;
 						solve[depth + 1] = solve[depth];
 						solve[depth + 1].Insert(j, i);
-						if (solve[depth + 1].length() < fewest_moves
-							|| (solve[depth + 1].length() == fewest_moves
-								&& depth + 1 < cycles_inserted)) {
-							fewest_moves = (best_answer =
-								solve[cycles_inserted = depth + 1]).length();
-							for (int k = 0; k <= depth; ++k) {
-								best_solve[k] = solve[k];
-								best_insert_place[k] = insert_place[k];
-								best_insertion[k] = insertion[k];
-							}
-						}
+						SetFewestMoves(solve[depth + 1].length(), depth + 1);
 					}
 				}
 				solve[depth].SwapAdjacentMove(i);
@@ -423,8 +416,8 @@ void Find::SearchCorner(int depth, int corner, int searched) {
 	} else {
 		int algs = algorithm.size();
 		Cube state;
-		for (int i = searched; i <= moves; ++i) {
-			if (i == searched) {
+		for (int i = begin; i <= end; ++i) {
+			if (i == begin) {
 				state.TwistCorner(solve[depth], i, moves);
 				state.TwistCorner(scramble_cube);
 				state.TwistCorner(solve[depth], 0, i);
@@ -447,34 +440,25 @@ void Find::SearchCorner(int depth, int corner, int searched) {
 						insertion[depth] = k;
 						solve[depth + 1] = solve[depth];
 						solve[depth + 1].Insert(k, i);
-						if (solve[depth + 1].length() < fewest_moves
-							|| (solve[depth + 1].length() == fewest_moves
-							&& depth + 1 < cycles_inserted)) {
-							fewest_moves = (best_answer =
-								solve[cycles_inserted = depth + 1]).length();
-							for (int l = 0; l <= depth; ++l) {
-								best_solve[l] = solve[l];
-								best_insert_place[l] = insert_place[l];
-								best_insertion[l] = insertion[l];
-							}
-						}
+						SetFewestMoves(solve[depth + 1].length(), depth + 1);
 					}
 				} else {
 					for (const Formula &k: algorithm[j].GetFormula()) {
 						solve[depth + 1] = solve[depth];
-						int searched_new = solve[depth + 1].Insert(k, i);
+						int begin_new = solve[depth + 1].Insert(k, i);
 						if (i < 2 || solve[depth][i - 2] >> 3
 							!= solve[depth][i - 1] >> 3) {
-							if (searched_new < i) {
+							if (begin_new < i) {
 								continue;
 							}
-						} else if (searched_new < i - 1) {
+						} else if (begin_new < i - 1) {
 							continue;
 						}
 						if (solve[depth + 1].length() + cornerX < fewest_moves) {
 							insertion[depth] = k;
 							insert_place[depth] = i;
-							SearchCorner(depth + 1, cornerX, searched_new);
+							SearchCorner(depth + 1, cornerX, begin_new,
+								solve[depth + 1].length());
 						}
 					}
 				}
@@ -502,28 +486,19 @@ void Find::SearchCorner(int depth, int corner, int searched) {
 							insertion[depth] = k;
 							solve[depth + 1] = solve[depth];
 							solve[depth + 1].Insert(k, i);
-							if (solve[depth + 1].length() < fewest_moves
-								|| (solve[depth + 1].length() == fewest_moves
-								&& depth + 1 < cycles_inserted)) {
-								fewest_moves = (best_answer = solve
-									[cycles_inserted = depth + 1]).length();
-								for (int l = 0; l <= depth; ++l) {
-									best_solve[l] = solve[l];
-									best_insert_place[l] = insert_place[l];
-									best_insertion[l] = insertion[l];
-								}
-							}
+							SetFewestMoves(solve[depth + 1].length(), depth + 1);
 						}
 					} else {
 						for (const Formula &k: algorithm[j].GetFormula()) {
 							solve[depth + 1] = solve[depth];
-							int searched_new = solve[depth + 1].Insert(k, i);
-							if (searched_new >= i
+							int begin_new = solve[depth + 1].Insert(k, i);
+							if (begin_new >= i
 								&& solve[depth + 1].length() + cornerX
 								< fewest_moves) {
 								insertion[depth] = k;
 								insert_place[depth] = i;
-								SearchCorner(depth + 1, cornerX, searched_new);
+								SearchCorner(depth + 1, cornerX, begin_new,
+									solve[depth + 1].length());
 							}
 						}
 					}
@@ -534,12 +509,12 @@ void Find::SearchCorner(int depth, int corner, int searched) {
 	}
 }
 
-void Find::SearchEdge(int depth, int edge, int searched) {
+void Find::SearchEdge(int depth, int edge, int begin, int end) {
 	int moves = solve[depth].length();
 	if (edge == 1) {
 		int index;
-		for (int i = searched; i <= moves; ++i) {
-			if (i == searched) {
+		for (int i = begin; i <= end; ++i) {
+			if (i == begin) {
 				Cube state;
 				state.TwistEdge(solve[depth], 0, i, false);
 				state.TwistEdge(inv_scramble_cube);
@@ -555,17 +530,7 @@ void Find::SearchEdge(int depth, int edge, int searched) {
 					insertion[depth] = j;
 					solve[depth + 1] = solve[depth];
 					solve[depth + 1].Insert(j, i);
-					if (solve[depth + 1].length() < fewest_moves
-						|| (solve[depth + 1].length() == fewest_moves
-						&& depth + 1 < cycles_inserted)) {
-						fewest_moves = (best_answer =
-							solve[cycles_inserted = depth + 1]).length();
-						for (int k = 0; k <= depth; ++k) {
-							best_solve[k] = solve[k];
-							best_insert_place[k] = insert_place[k];
-							best_insertion[k] = insertion[k];
-						}
-					}
+					SetFewestMoves(solve[depth + 1].length(), depth + 1);
 				}
 			}
 			if (i > 0 && i < moves
@@ -582,17 +547,7 @@ void Find::SearchEdge(int depth, int edge, int searched) {
 						insertion[depth] = j;
 						solve[depth + 1] = solve[depth];
 						solve[depth + 1].Insert(j, i);
-						if (solve[depth + 1].length() < fewest_moves
-							|| (solve[depth + 1].length() == fewest_moves
-							&& depth + 1 < cycles_inserted)) {
-							fewest_moves = (best_answer =
-								solve[cycles_inserted = depth + 1]).length();
-							for (int k = 0; k <= depth; ++k) {
-								best_solve[k] = solve[k];
-								best_insert_place[k] = insert_place[k];
-								best_insertion[k] = insertion[k];
-							}
-						}
+						SetFewestMoves(solve[depth + 1].length(), depth + 1);
 					}
 				}
 				solve[depth].SwapAdjacentMove(i);
@@ -601,8 +556,8 @@ void Find::SearchEdge(int depth, int edge, int searched) {
 	} else {
 		int algs = algorithm.size();
 		Cube state;
-		for (int i = searched; i <= moves; ++i) {
-			if (i == searched) {
+		for (int i = begin; i <= end; ++i) {
+			if (i == begin) {
 				state.TwistEdge(solve[depth], i, moves);
 				state.TwistEdge(scramble_cube);
 				state.TwistEdge(solve[depth], 0, i);
@@ -625,34 +580,25 @@ void Find::SearchEdge(int depth, int edge, int searched) {
 						insertion[depth] = k;
 						solve[depth + 1] = solve[depth];
 						solve[depth + 1].Insert(k, i);
-						if (solve[depth + 1].length() < fewest_moves
-							|| (solve[depth + 1].length() == fewest_moves
-							&& depth + 1 < cycles_inserted)) {
-							fewest_moves = (best_answer =
-								solve[cycles_inserted = depth + 1]).length();
-							for (int l = 0; l <= depth; ++l) {
-								best_solve[l] = solve[l];
-								best_insert_place[l] = insert_place[l];
-								best_insertion[l] = insertion[l];
-							}
-						}
+						SetFewestMoves(solve[depth + 1].length(), depth + 1);
 					}
 				} else {
 					for (const Formula &k: algorithm[j].GetFormula()) {
 						solve[depth + 1] = solve[depth];
-						int searched_new = solve[depth + 1].Insert(k, i);
+						int begin_new = solve[depth + 1].Insert(k, i);
 						if (i < 2 || solve[depth][i - 2] >> 3
 							!= solve[depth][i - 1] >> 3) {
-							if (searched_new < i) {
+							if (begin_new < i) {
 								continue;
 							}
-						} else if (searched_new < i - 1) {
+						} else if (begin_new < i - 1) {
 							continue;
 						}
 						if (solve[depth + 1].length() + edgeX < fewest_moves) {
 							insertion[depth] = k;
 							insert_place[depth] = i;
-							SearchEdge(depth + 1, edgeX, searched_new);
+							SearchEdge(depth + 1, edgeX, begin_new,
+								solve[depth + 1].length());
 						}
 					}
 				}
@@ -680,28 +626,19 @@ void Find::SearchEdge(int depth, int edge, int searched) {
 							insertion[depth] = k;
 							solve[depth + 1] = solve[depth];
 							solve[depth + 1].Insert(k, i);
-							if (solve[depth + 1].length() < fewest_moves
-								|| (solve[depth + 1].length() == fewest_moves
-								&& depth + 1 < cycles_inserted)) {
-								fewest_moves = (best_answer = solve
-									[cycles_inserted = depth + 1]).length();
-								for (int l = 0; l <= depth; ++l) {
-									best_solve[l] = solve[l];
-									best_insert_place[l] = insert_place[l];
-									best_insertion[l] = insertion[l];
-								}
-							}
+							SetFewestMoves(solve[depth + 1].length(), depth + 1);
 						}
 					} else {
 						for (const Formula &k: algorithm[j].GetFormula()) {
 							solve[depth + 1] = solve[depth];
-							int searched_new = solve[depth + 1].Insert(k, i);
-							if (searched_new >= i
+							int begin_new = solve[depth + 1].Insert(k, i);
+							if (begin_new >= i
 								&& solve[depth + 1].length() + edgeX
 								< fewest_moves) {
 								insertion[depth] = k;
 								insert_place[depth] = i;
-								SearchEdge(depth + 1, edgeX, searched_new);
+								SearchEdge(depth + 1, edgeX, begin_new,
+									solve[depth + 1].length());
 							}
 						}
 					}
@@ -729,7 +666,7 @@ string Find::PrintAnswer() {
 						best_solve[i].length(), false)) << '\n'
 				<< I18N::InsertAt(i + 1, best_insertion[i].str()) << '\n';
 		}
-		int cancelled_moves = solve[0].length() - best_answer.length();
+		int cancelled_moves = best_solve[0].length() - best_answer.length();
 		for (int i = 0; i < cycles_inserted; ++i) {
 			cancelled_moves += best_insertion[i].length();
 		}

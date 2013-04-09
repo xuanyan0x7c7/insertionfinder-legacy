@@ -660,7 +660,7 @@ void Cube::TwistEdge(const Formula &f, size_t start, size_t end, bool dir) {
 }
 
 void Cube::Twist(const Cube &cube) {
-	static Cube result;
+	Cube result;
 	for (int i = 0; i < 8; ++i) {
 		int j = cube.cp[i];
 		result.cp[i] = this->cp[j];
@@ -675,7 +675,7 @@ void Cube::Twist(const Cube &cube) {
 }
 
 void Cube::TwistCorner(const Cube &cube) {
-	static int ori[8], perm[8];
+	int ori[8], perm[8];
 	for (int i = 0; i < 8; ++i) {
 		int j = cube.cp[i];
 		perm[i] = this->cp[j];
@@ -688,8 +688,8 @@ void Cube::TwistCorner(const Cube &cube) {
 }
 
 void Cube::TwistEdge(const Cube &cube) {
-	static bitset<12> ori;
-	static int perm[12];
+	bitset<12> ori;
+	int perm[12];
 	for (int i = 0; i < 12; ++i) {
 		int j = cube.ep[i];
 		perm[i] = this->ep[j];
@@ -789,10 +789,9 @@ size_t Cube::Mask() const {
 }
 
 bool Cube::IsParity() const {
-	static bitset<8> visited;
+	bitset<8> visited;
 	bool length;
 	bool ok = false;
-	visited.reset();
 	for (int i = 0; i < 8; ++i) {
 		if (!visited.test(i) && cp[i] != i) {
 			length = false;
@@ -902,9 +901,8 @@ namespace {
 }
 
 int Cube::CornerCycles() const {
-	static bitset<8> visited;
+	bitset<8> visited;
 	int state = 0;
-	visited.reset();
 
 	for (int i = 0; i < 8; ++i) {
 		if (!visited.test(i)) {
@@ -931,8 +929,7 @@ int Cube::CornerCycles() const {
 int Cube::EdgeCycles() const
 {
 	static constexpr array<int, 7> edge_add = {{0, 2, 3, 5, 6, 8, 9}};
-	static bitset<12> visited;
-	visited.reset();
+	bitset<12> visited;
 	int count = 0, oricount = 0;
 
 	for (int i = 0; i < 12; ++i) {

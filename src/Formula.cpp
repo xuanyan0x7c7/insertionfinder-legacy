@@ -29,7 +29,7 @@ Formula& Formula::operator=(Formula&&) = default;
 Formula::~Formula() = default;
 
 Formula::Formula() {
-	move.reserve(100);
+	move.reserve(80);
 };
 
 Formula::Formula(const string &str): Formula() {
@@ -43,19 +43,11 @@ Formula::Formula(const string &str): Formula() {
 			if (*(iter + 1) == 'w') {
 				if (*(iter + 2) == '2') {
 					procedure.push_back(string(iter, iter + 3));
-					if (*(iter + 3) == '\'') {
-						iter += 4;
-					} else {
-						iter += 3;
-					}
+					iter += 3;
 				}
 			} else if (*(iter + 1) == '2') {
 				procedure.push_back(string(iter, iter + 2));
-				if (*(iter + 2) == '\'') {
-					iter += 3;
-				} else {
-					iter += 2;
-				}
+				iter += 2;
 			} else if (*(iter + 1) == '\'') {
 				procedure.push_back(string(iter, iter + 2));
 				iter += 2;
@@ -66,11 +58,7 @@ Formula::Formula(const string &str): Formula() {
 		} else if (inner_twist.find(*iter) != string::npos) {
 			if (*(iter + 1) == '2') {
 				procedure.push_back(string(iter, iter + 2));
-				if (*(iter + 2) == '\'') {
-					iter += 3;
-				} else {
-					iter += 2;
-				}
+				iter += 2;
 			} else if (*(iter + 1) == '\'') {
 				procedure.push_back(string(iter, iter + 2));
 				iter += 2;
@@ -87,43 +75,7 @@ Formula::Formula(const string &str): Formula() {
 	}
 
 	for (auto iter = procedure.begin(); iter != procedure.end(); ++iter) {
-		if (*iter == "E" || *iter == "u'" || *iter == "d") {
-			procedure.insert(iter, "U");
-			procedure.insert(iter, "D'");
-			*iter = "y'";
-		} else if (*iter == "E2" || *iter == "u2" || *iter == "d2") {
-			procedure.insert(iter, "U2");
-			procedure.insert(iter, "D2");
-			*iter = "y2";
-		} else if (*iter == "E'" || *iter == "u" || *iter == "d'") {
-			procedure.insert(iter, "U'");
-			procedure.insert(iter, "D");
-			*iter = "y";
-		} else if (*iter == "M" || *iter == "r'" || *iter == "l") {
-			procedure.insert(iter, "R");
-			procedure.insert(iter, "L'");
-			*iter = "x'";
-		} else if (*iter == "M2" || *iter == "r2" || *iter == "l2") {
-			procedure.insert(iter, "R2");
-			procedure.insert(iter, "L2");
-			*iter = "x2";
-		} else if (*iter == "M'" || *iter == "r" || *iter == "l'") {
-			procedure.insert(iter, "R'");
-			procedure.insert(iter, "L");
-			*iter = "x";
-		} else if (*iter == "S" || *iter == "f" || *iter == "b'") {
-			procedure.insert(iter, "F'");
-			procedure.insert(iter, "B");
-			*iter = "z";
-		} else if (*iter == "S2" || *iter == "f2" || *iter == "b2") {
-			procedure.insert(iter, "F2");
-			procedure.insert(iter, "B2");
-			*iter = "z2";
-		} else if (*iter == "S'" || *iter == "f'" || *iter == "b") {
-			procedure.insert(iter, "F");
-			procedure.insert(iter, "B'");
-			*iter = "z'";
-		} else if (*iter == "Uw") {
+		if (*iter == "Uw") {
 			procedure.insert(iter, "D");
 			*iter = "y";
 		} else if (*iter == "Uw2") {
