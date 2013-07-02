@@ -18,8 +18,9 @@ public:
 	Cube& operator=(Cube&&);
 	~Cube();
 private:
-	enum {U0, U, U2, U3, D0, D, D2, D3, R0, R, R2, R3, L0, L, L2, L3,
-			F0, F, F2, F3, B0, B, B2, B3};
+	enum {
+		U0, U, U2, U3, D0, D, D2, D3, R0, R, R2, R3,
+		L0, L, L2, L3, F0, F, F2, F3, B0, B, B2, B3};
 public:
 	Cube();
 	Cube(const Formula&);
@@ -65,4 +66,3 @@ public:
 	static Cube CornerCycleCube(int);
 	static Cube EdgeCycleCube(int);
 };
-

@@ -27,4 +27,3 @@ public:
 	void CopyFormula(const Algorithm&);
 	void CopyFormula(Algorithm&);
 };
-

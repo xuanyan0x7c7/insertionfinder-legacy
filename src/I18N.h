@@ -21,4 +21,3 @@ public:
 	static std::string FinalSolution(const std::string&);
 	static std::string Runtime(int64_t, int64_t);
 };
-

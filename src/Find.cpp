@@ -6,7 +6,6 @@
 #include <sstream>
 #include <thread>
 #include <vector>
-#include "Color.h"
 #include "Find.h"
 #include "I18N.h"
 using std::chrono::duration_cast;
@@ -130,31 +129,39 @@ Find::Solve(const Formula &scramble, const Formula &solve, int include) {
 	split[0] = -1;
 	split[cores] = moves;
 	for (size_t i = 1; i < cores; ++i) {
-		split[cores - i] = static_cast<int>(moves * (1 - pow(static_cast<double>(i) / cores, 0.5)));
+		split[cores - i] = static_cast<int>
+			(moves * (1 - pow(static_cast<double>(i) / cores, 0.5)));
 	}
 	auto start = steady_clock::now();
 	vector<thread> t(cores);
 	if (corner_only) {
-		static function<void(Find&, int, int, int, int)> f = mem_fn(&Find::SearchCorner);
+		static function<void(Find&, int, int, int, int)> f =
+			mem_fn(&Find::SearchCorner);
 		for (size_t i = 0; i < cores; ++i) {
-			t[i] = move(thread(f, ref(finder[i]), 0, cycles[0], split[i] + 1, split[i + 1]));
+			t[i] = move(thread(f, ref(finder[i]), 0, cycles[0],
+				split[i] + 1, split[i + 1]));
 		}
 	} else if (edge_only) {
-		static function<void(Find&, int, int, int, int)> f = mem_fn(&Find::SearchEdge);
+		static function<void(Find&, int, int, int, int)> f =
+			mem_fn(&Find::SearchEdge);
 		for (size_t i = 0; i < cores; ++i) {
-			t[i] = move(thread(f, ref(finder[i]), 0, cycles[1], split[i] + 1, split[i + 1]));
+			t[i] = move(thread(f, ref(finder[i]), 0, cycles[1],
+				split[i] + 1, split[i + 1]));
 		}
 	} else {
-		static function<void(Find&, int, int, int, int, int)> f = mem_fn(&Find::Search);
+		static function<void(Find&, int, int, int, int, int)> f =
+			mem_fn(&Find::Search);
 		for (size_t i = 0; i < cores; ++i) {
-			t[i] = move(thread(f, ref(finder[i]), 0, cycles[0], cycles[1], split[i] + 1, split[i + 1]));
+			t[i] = move(thread(f, ref(finder[i]), 0, cycles[0], cycles[1],
+				split[i] + 1, split[i + 1]));
 		}
 	}
 	for (size_t i = 0; i < cores; ++i) {
 		t[i].join();
 	}
 	auto end = steady_clock::now();
-	return make_pair(PrintAnswer(), duration_cast<microseconds>(end - start).count());
+	return make_pair(PrintAnswer(),
+		duration_cast<microseconds>(end - start).count());
 }
 
 namespace {
@@ -186,7 +193,8 @@ void Find::Search(int depth, int corner, int edge, int begin, int end) {
 				state.TwistCorner(solve[depth], i, moves, false);
 				index = state.GetCornerCycleIndex();
 			} else {
-				index = Cube::corner_cycle_table[index * 24 + solve[depth][i - 1]];
+				index = Cube::corner_cycle_table[
+					index * 24 + solve[depth][i - 1]];
 			}
 			int x = corner_cycle_index[index];
 			if (x != -1) {
@@ -228,7 +236,8 @@ void Find::Search(int depth, int corner, int edge, int begin, int end) {
 				state.TwistEdge(solve[depth], i, moves, false);
 				index = state.GetEdgeCycleIndex();
 			} else {
-				index = Cube::edge_cycle_table[index * 24 + solve[depth][i - 1]];
+				index = Cube::edge_cycle_table[
+					index * 24 + solve[depth][i - 1]];
 			}
 			int x = edge_cycle_index[index];
 			if (x != -1) {
@@ -280,7 +289,8 @@ void Find::Search(int depth, int corner, int edge, int begin, int end) {
 				}
 				bool changeC = algorithm[j].change_corner;
 				bool changeE = algorithm[j].change_edge;
-				if (!Twist(state, algorithm[j].state, cube, changeC, changeE)) {
+				if (!Twist(state, algorithm[j].state,
+					cube, changeC, changeE)) {
 					continue;
 				}
 				int cornerX = changeC ? cube.CornerCycles() : corner;
@@ -346,7 +356,8 @@ void Find::Search(int depth, int corner, int edge, int begin, int end) {
 							insertion[depth] = k;
 							solve[depth + 1] = solve[depth];
 							solve[depth + 1].Insert(k, i);
-							SetFewestMoves(solve[depth + 1].length(), depth + 1);
+							SetFewestMoves(solve[depth + 1].length(),
+								depth + 1);
 						}
 					} else {
 						for (const Formula &k: algorithm[j].GetFormula()) {
@@ -381,7 +392,8 @@ void Find::SearchCorner(int depth, int corner, int begin, int end) {
 				state.TwistCorner(solve[depth], i, moves, false);
 				index = state.GetCornerCycleIndex();
 			} else {
-				index = Cube::corner_cycle_table[index * 24 + solve[depth][i - 1]];
+				index = Cube::corner_cycle_table[
+					index * 24 + solve[depth][i - 1]];
 			}
 			int x = corner_cycle_index[index];
 			if (x != -1) {
@@ -454,7 +466,8 @@ void Find::SearchCorner(int depth, int corner, int begin, int end) {
 						} else if (begin_new < i - 1) {
 							continue;
 						}
-						if (solve[depth + 1].length() + cornerX < fewest_moves) {
+						if (solve[depth + 1].length() + cornerX
+							< fewest_moves) {
 							insertion[depth] = k;
 							insert_place[depth] = i;
 							SearchCorner(depth + 1, cornerX, begin_new,
@@ -486,7 +499,8 @@ void Find::SearchCorner(int depth, int corner, int begin, int end) {
 							insertion[depth] = k;
 							solve[depth + 1] = solve[depth];
 							solve[depth + 1].Insert(k, i);
-							SetFewestMoves(solve[depth + 1].length(), depth + 1);
+							SetFewestMoves(solve[depth + 1].length(),
+								depth + 1);
 						}
 					} else {
 						for (const Formula &k: algorithm[j].GetFormula()) {
@@ -521,7 +535,8 @@ void Find::SearchEdge(int depth, int edge, int begin, int end) {
 				state.TwistEdge(solve[depth], i, moves, false);
 				index = state.GetEdgeCycleIndex();
 			} else {
-				index = Cube::edge_cycle_table[index * 24 + solve[depth][i - 1]];
+				index = Cube::edge_cycle_table[
+					index * 24 + solve[depth][i - 1]];
 			}
 			int x = edge_cycle_index[index];
 			if (x != -1) {
@@ -626,7 +641,8 @@ void Find::SearchEdge(int depth, int edge, int begin, int end) {
 							insertion[depth] = k;
 							solve[depth + 1] = solve[depth];
 							solve[depth + 1].Insert(k, i);
-							SetFewestMoves(solve[depth + 1].length(), depth + 1);
+							SetFewestMoves(solve[depth + 1].length(),
+								depth + 1);
 						}
 					} else {
 						for (const Formula &k: algorithm[j].GetFormula()) {
@@ -654,8 +670,7 @@ string Find::PrintAnswer() {
 	if (fewest_moves == 0xffffffff) {
 		str << I18N::NoProperInsertionsFound();
 	} else {
-		str << best_solve[0].str(0, best_insert_place[0], true)
-			<< green << "[@1]" << reset
+		str << best_solve[0].str(0, best_insert_place[0], true) << "[@1]"
 			<< best_solve[0].str(best_insert_place[0], best_solve[0].length(),
 				false)
 			<< '\n' << I18N::InsertAt(1, best_insertion[0].str()) << '\n';
@@ -675,4 +690,3 @@ string Find::PrintAnswer() {
 	}
 	return str.str();
 }
-

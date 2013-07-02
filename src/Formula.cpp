@@ -290,7 +290,7 @@ Formula::Formula(const string &str): Formula() {
 			NISS_neg.insert(NISS_neg.end(), iter, iter2);
 		}
 		iter = iter2;
-		if (*iter2 == NISS) {
+		if (iter2 != procedure.cend()) {
 			++iter;
 		}
 		direction = !direction;
@@ -434,4 +434,3 @@ string Formula::str(size_t start, size_t end, bool pos) const {
 void Formula::Resize() {
 	move.shrink_to_fit();
 }
-

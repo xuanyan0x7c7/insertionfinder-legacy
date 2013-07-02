@@ -3,8 +3,6 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <unistd.h>
-#include "Color.h"
 #include "CommandLineParser.h"
 #include "Find.h"
 #include "I18N.h"
@@ -52,6 +50,16 @@ void Verify(istream &in) {
 	Verify(scramble, solve);
 }
 
+void VerifyMulti(istream &in) {
+	string str;
+	getline(in, str);
+	Formula scramble(str);
+	while (getline(in, str)) {
+		Formula solve(str);
+		Verify(scramble, solve);
+	}
+}
+
 void Solve(istream &in) {
 	string str;
 	getline(in, str);
@@ -61,6 +69,18 @@ void Solve(istream &in) {
 	int include;
 	in >> include;
 	Solve(scramble, solve, include);
+}
+
+void SolveMulti(istream &in) {
+	string str;
+	getline(in, str);
+	Formula scramble(str);
+	while (getline(in, str)) {
+		int include;
+		in >> include;
+		Formula solve(str);
+		Solve(scramble, solve, include);
+	}
 }
 
 int main(int argc, char **argv) {
@@ -76,13 +96,9 @@ int main(int argc, char **argv) {
 			type = 0;
 		} else if (com.first == "v" || com.first == "verify") {
 			type = 1;
-		} else if (com.first == "color") {
-			if (com.second == "auto" || com.second == "") {
-				Color::print_color = isatty(1);
-			} else if (com.second == "always") {
-				Color::print_color = true;
-			} else if (com.second == "never") {
-				Color::print_color = false;
+		} else if (com.first == "m" || com.first == "multi") {
+			if (type >= 0) {
+				type += 2;
 			}
 		}
 	}
@@ -104,7 +120,24 @@ int main(int argc, char **argv) {
 				Verify(in);
 			}
 		}
+	} else if (type == 2) {
+		if (files.empty()) {
+			Solve(cin);
+		} else {
+			for (const string &file: files) {
+				ifstream in(file);
+				SolveMulti(in);
+			}
+		}
+	} else if (type == 3) {
+		if (files.empty()) {
+			Verify(cin);
+		} else {
+			for (const string &file: files) {
+				ifstream in(file);
+				VerifyMulti(in);
+			}
+		}
 	}
 	return 0;
 }
-

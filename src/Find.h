@@ -44,4 +44,3 @@ private:
 	void SearchEdge(int, int, int, int);
 	static std::string PrintAnswer();
 };
-

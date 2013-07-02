@@ -926,8 +926,7 @@ int Cube::CornerCycles() const {
 	return output_table[state];
 }
 
-int Cube::EdgeCycles() const
-{
+int Cube::EdgeCycles() const {
 	static constexpr array<int, 7> edge_add = {{0, 2, 3, 5, 6, 8, 9}};
 	bitset<12> visited;
 	int count = 0, oricount = 0;
@@ -960,7 +959,7 @@ int Cube::EdgeCycles() const
 		--oricount;
 	}
 
-	return count + (oricount ? edge_add[oricount >> 1] : oricount >> 1);
+	return count + (oricount > 0 ? edge_add[oricount >> 1] : oricount >> 1);
 }
 
 int Cube::GetCornerCycleIndex() const {
@@ -1024,4 +1023,3 @@ Cube Cube::EdgeCycleCube(int index) {
 	}
 	return cube;
 }
-

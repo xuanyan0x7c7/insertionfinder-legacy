@@ -1,13 +1,13 @@
-<color>The Scramble:</color> $
-<color>Your Skeleton:</color> $
+The Scramble: $
+Your Skeleton: $
 The cube is solved
 There is parity
-$ corner 3-cycle insertion(s) <color>needed</color>
-$ edge 3-cycle insertion(s) <color>needed</color>
-$ corner 3-cycle <color>and</color> $ edge 3-cycle insertions <color>needed</color>
+$ corner 3-cycle insertion(s) needed
+$ edge 3-cycle insertion(s) needed
+$ corner 3-cycle and $ edge 3-cycle insertions needed
 No proper insertions found
-<color>Insert at</color> @$<color>:</color> $
-<color>After insertion No.</color>$<color>:</color> $<color>[@$]</color>$
-<color>Fewest moves:</color> $	$ <color>move(s) cancelled</color>
-<color>The final solution:</color> $
-<color>Runtime:</color> $<color>/</color>$ <color>microseconds</color>
+Insert at @$: $
+After insertion No.$: $[@$]$
+Fewest moves: $	$ move(s) cancelled
+The final solution: $
+Runtime: $/$ microseconds

@@ -2,7 +2,6 @@
 #include <iostream>
 #include <locale>
 #include <sstream>
-#include "Color.h"
 #include "I18N.h"
 using std::array;
 using std::cerr;
@@ -59,8 +58,8 @@ namespace {
 		}
 	}
 
-	template <typename T, typename... Types> void
-	Print(ostream &out, istringstream &in, const T &arg, const Types& ...args) {
+	template <typename T, typename ...Types> void
+	Print(ostream &out, istringstream &in, const T &arg, const Types &...args) {
 		char ch;
 		while (true) {
 			in.get(ch);
@@ -95,8 +94,6 @@ string I18N::Scramble(const string &scramble) {
 	ostringstream out;
 	Print(out, in, scramble);
 	string str = out.str();
-	ReplaceAll(str, "<color>", Color::Green());
-	ReplaceAll(str, "</color>", Color::Reset());
 	return str;
 }
 
@@ -105,22 +102,16 @@ string I18N::Solve(const string &solve) {
 	ostringstream out;
 	Print(out, in, solve);
 	string str = out.str();
-	ReplaceAll(str, "<color>", Color::Green());
-	ReplaceAll(str, "</color>", Color::Reset());
 	return str;
 }
 
 string I18N::TheCubeIsSolved() {
 	string str(I18N::i18n[2]);
-	ReplaceAll(str, "<color>", Color::Green());
-	ReplaceAll(str, "</color>", Color::Reset());
 	return str;
 }
 
 string I18N::ThereIsParity() {
 	string str(I18N::i18n[3]);
-	ReplaceAll(str, "<color>", Color::Green());
-	ReplaceAll(str, "</color>", Color::Reset());
 	return str;
 }
 
@@ -142,15 +133,11 @@ string I18N::Cycles(int corner, int edge) {
 		Print(out, in, corner, edge);
 		str = out.str();
 	}
-	ReplaceAll(str, "<color>", Color::Green());
-	ReplaceAll(str, "</color>", Color::Reset());
 	return str;
 }
 
 string I18N::NoProperInsertionsFound() {
 	string str(I18N::i18n[7]);
-	ReplaceAll(str, "<color>", Color::Green());
-	ReplaceAll(str, "</color>", Color::Reset());
 	return str;
 }
 
@@ -159,8 +146,6 @@ string I18N::InsertAt(int n, const string &formula) {
 	ostringstream out;
 	Print(out, in, n, formula);
 	string str = out.str();
-	ReplaceAll(str, "<color>", Color::Green());
-	ReplaceAll(str, "</color>", Color::Reset());
 	return str;
 }
 
@@ -169,8 +154,6 @@ string I18N::AfterInsertion(int n, const string &f1, const string &f2) {
 	ostringstream out;
 	Print(out, in, n, f1, n + 1, f2);
 	string str = out.str();
-	ReplaceAll(str, "<color>", Color::Green());
-	ReplaceAll(str, "</color>", Color::Reset());
 	return str;
 }
 
@@ -179,8 +162,6 @@ string I18N::Moves(int total, int cancel) {
 	ostringstream out;
 	Print(out, in, total, cancel);
 	string str = out.str();
-	ReplaceAll(str, "<color>", Color::Green());
-	ReplaceAll(str, "</color>", Color::Reset());
 	return str;
 }
 
@@ -189,8 +170,6 @@ string I18N::FinalSolution(const string &solution) {
 	ostringstream out;
 	Print(out, in, solution);
 	string str = out.str();
-	ReplaceAll(str, "<color>", Color::Green());
-	ReplaceAll(str, "</color>", Color::Reset());
 	return str;
 }
 
@@ -199,8 +178,5 @@ string I18N::Runtime(int64_t t1, int64_t t2) {
 	ostringstream out;
 	Print(out, in, t1, t2);
 	string str = out.str();
-	ReplaceAll(str, "<color>", Color::Green());
-	ReplaceAll(str, "</color>", Color::Reset());
 	return str;
 }
-

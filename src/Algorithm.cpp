@@ -54,4 +54,3 @@ void Algorithm::CopyFormula(const Algorithm &alg) {
 void Algorithm::CopyFormula(Algorithm &alg) {
 	this->formula.swap(alg.formula);
 }
-
