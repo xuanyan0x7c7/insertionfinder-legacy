@@ -2,7 +2,7 @@
 Find insertions for Rubik's cube fewest moves.
 
 ## Compile
-A Compiler supports C++11 is required. <br />
+A compiler supports C++11 is required. <br />
 For g++ version >= 4.7, use `g++ -std=c++11 -O3 -o insertionfinder src/*.cpp -pthread` to compile
 
 ## Run
