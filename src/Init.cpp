@@ -1,17 +1,12 @@
-#include <array>
 #include <fstream>
-#include <iostream>
 #include <map>
 #include <string>
-#include <unistd.h>
 #include <utility>
 #include <vector>
-#include "Init.h"
 #include "Algorithm.h"
-using std::array;
+#include "Init.h"
 using std::endl;
 using std::ifstream;
-using std::ios;
 using std::map;
 using std::move;
 using std::ofstream;
@@ -20,22 +15,19 @@ using std::vector;
 
 
 void InitAlgorithmSystem() {
-	static const string alg_file[20] = {
-		"3CP", "3EP 6f", "3EP 7f", "3EP 8f", "3EP 9f", "3EP 10f", "2x2CP 10f",
-		"2x2CP 11f", "2x2CP 12f", "2x2EP 6f", "2x2EP 7f", "2x2EP 8f",
-		"2x2EP 9f", "2x2EP 10f", "2CO", "3CO", "EO", "Edges 6f", "Edges 7f",
-		"Others"};
-	static constexpr int file_index[20] =
-		{0, 3, 3, 3, 3, 3, 1, 1, 1, 4, 4, 4, 4, 4, 2, 2, 5, 6, 6, 7};
+	static const string alg_file[8] = {
+		"3CP", "3EP", "2x2CP", "2x2EP", "CO", "EO", "Edges", "Others"};
+	static constexpr int file_index[8] =
+		{0, 3, 1, 4, 2, 5, 6, 7};
 	map<Cube, vector<Formula>> algorithm_set[8];
 
-	for (int i = 0; i < 20; ++i) {
+	for (int i = 0; i < 8; ++i) {
 		map<Cube, vector<Formula>> &s = algorithm_set[file_index[i]];
 		ifstream file("Algorithm/" + alg_file[i]);
 		string str;
 		while (getline(file, str)) {
 			Formula f(str);
-			f.Resize();
+			f.shrink_to_fit();
 			Cube cube(f);
 			if (!cube.IsParity()) {
 				s[cube].push_back(move(f));

@@ -1,25 +1,24 @@
-#include <iostream>
+#include <istream>
+#include <utility>
 #include "Algorithm.h"
-using std::array;
-using std::endl;
 using std::istream;
 using std::move;
-using std::ostream;
+using std::size_t;
 using std::vector;
 
 
 Algorithm::Algorithm(const Algorithm&) = default;
 Algorithm::Algorithm(Algorithm&&) = default;
-Algorithm& Algorithm::operator=(const Algorithm&) = default;
-Algorithm& Algorithm::operator=(Algorithm&&) = default;
+Algorithm& Algorithm::operator =(const Algorithm&) = default;
+Algorithm& Algorithm::operator =(Algorithm&&) = default;
 Algorithm::~Algorithm() = default;
 
-Algorithm::Algorithm() {};
+Algorithm::Algorithm() = default;
 
 Algorithm::Algorithm(const Cube &state): state(state), mask(state.Mask()),
 	change_corner(mask & 0xff000), change_edge(mask & 0x00fff) {}
 
-istream& operator>>(istream &in, Algorithm &alg) {
+istream& operator >>(istream &in, Algorithm &alg) {
 	in >> alg.state;
 	alg.mask = alg.state.Mask();
 	alg.change_corner = alg.mask & 0xff000;
@@ -41,12 +40,12 @@ void Algorithm::AddFormula(Formula &&f) {
 	formula.push_back(move(f));
 }
 
-const vector<Formula>& Algorithm::GetFormula() const {
+const vector<Formula>& Algorithm::GetFormula() const noexcept {
 	return formula;
 }
 
 void Algorithm::CopyFormula(const Algorithm &alg) {
-	for (const Formula f: alg.formula) {
+	for (const Formula &f: alg.formula) {
 		this->formula.push_back(f);
 	}
 }

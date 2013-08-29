@@ -1,6 +1,5 @@
 #include <fstream>
 #include <string>
-#include <unistd.h>
 #include <utility>
 #include "Cube.h"
 using std::array;
@@ -12,7 +11,7 @@ using std::string;
 
 
 namespace {
-	constexpr int inverse_move[24] = {
+	constexpr int inv_move[24] = {
 		0, 3, 2, 1, 4, 7, 6, 5, 8, 11, 10, 9,
 		12, 15, 14, 13, 16, 19, 18, 17, 20, 23, 22, 21};
 
@@ -49,14 +48,14 @@ namespace {
 
 Cube::Cube(const Cube&) = default;
 Cube::Cube(Cube&&) = default;
-Cube& Cube::operator=(const Cube&) = default;
-Cube& Cube::operator=(Cube&&) = default;
+Cube& Cube::operator =(const Cube&) = default;
+Cube& Cube::operator =(Cube&&) = default;
 Cube::~Cube() = default;
 
 Cube::Cube():
-	co({{0, 0, 0, 0, 0, 0, 0, 0}}),
-	cp({{0, 1, 2, 3, 4, 5, 6, 7}}),
-	ep({{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}}) {}
+	co({0, 0, 0, 0, 0, 0, 0, 0}),
+	cp({0, 1, 2, 3, 4, 5, 6, 7}),
+	ep({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}) {}
 
 Cube::Cube(const Formula &formula): Cube() {
 	Twist(formula);
@@ -84,7 +83,7 @@ namespace {
 				for (int j = 0; j < 24; ++j) {
 					if (j & 3) {
 						Cube cube0(cube);
-						cube0.TwistCornerBefore(inverse_move[j]);
+						cube0.TwistCornerBefore(inv_move[j]);
 						cube0.TwistCorner(j);
 						table[i * 24 + j] = cube0.GetCornerCycleIndex();
 					} else {
@@ -109,7 +108,7 @@ namespace {
 				for (int j = 0; j < 24; ++j) {
 					if (j & 3) {
 						Cube cube0(cube);
-						cube0.TwistEdgeBefore(inverse_move[j]);
+						cube0.TwistEdgeBefore(inv_move[j]);
 						cube0.TwistEdge(j);
 						table[i * 24 + j] = cube0.GetEdgeCycleIndex();
 					} else {
@@ -160,16 +159,16 @@ ostream& operator<<(ostream &out, const Cube &cube) {
 	return out;
 }
 
-bool operator==(const Cube &lhs, const Cube &rhs) {
+bool operator ==(const Cube &lhs, const Cube &rhs) {
 	return lhs.co == rhs.co && lhs.cp == rhs.cp
 	   && lhs.eo == rhs.eo && lhs.ep == rhs.ep;
 }
 
-bool operator!=(const Cube &lhs, const Cube &rhs) {
+bool operator !=(const Cube &lhs, const Cube &rhs) {
 	return !(lhs == rhs);
 }
 
-bool operator<(const Cube &lhs, const Cube &rhs) {
+bool operator <(const Cube &lhs, const Cube &rhs) {
 	for (int i = 0; i < 8; ++i) {
 		if (lhs.co[i] < rhs.co[i]) {
 			return true;
@@ -201,7 +200,7 @@ bool operator<(const Cube &lhs, const Cube &rhs) {
 	return false;
 }
 
-bool operator>(const Cube &lhs, const Cube &rhs) {
+bool operator >(const Cube &lhs, const Cube &rhs) {
 	return rhs < lhs;
 }
 
@@ -630,7 +629,7 @@ void Cube::Twist(const Formula &f, size_t start, size_t end, bool dir) {
 		}
 	} else {
 		for (size_t i = end; i > start; --i) {
-			Twist(inverse_move[f[i - 1]]);
+			Twist(inv_move[f[i - 1]]);
 		}
 	}
 }
@@ -642,7 +641,7 @@ void Cube::TwistCorner(const Formula &f, size_t start, size_t end, bool dir) {
 		}
 	} else {
 		for (size_t i = end; i > start; --i) {
-			TwistCorner(inverse_move[f[i - 1]]);
+			TwistCorner(inv_move[f[i - 1]]);
 		}
 	}
 }
@@ -654,7 +653,7 @@ void Cube::TwistEdge(const Formula &f, size_t start, size_t end, bool dir) {
 		}
 	} else {
 		for (size_t i = end; i > start; --i) {
-			TwistEdge(inverse_move[f[i - 1]]);
+			TwistEdge(inv_move[f[i - 1]]);
 		}
 	}
 }
@@ -927,7 +926,7 @@ int Cube::CornerCycles() const {
 }
 
 int Cube::EdgeCycles() const {
-	static constexpr array<int, 7> edge_add = {{0, 2, 3, 5, 6, 8, 9}};
+	static constexpr array<int, 7> edge_add = {0, 2, 3, 5, 6, 8, 9};
 	bitset<12> visited;
 	int count = 0, oricount = 0;
 

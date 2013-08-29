@@ -7,6 +7,7 @@ using std::array;
 using std::cerr;
 using std::endl;
 using std::ifstream;
+using std::int64_t;
 using std::istringstream;
 using std::locale;
 using std::ostream;
@@ -19,9 +20,9 @@ using std::string;
 	#define LIBRARY_PATH ""
 #endif
 
-const array<string, 13> I18N::i18n = I18N::Init();
+const array<string, 13> I18N::i18n = I18N::init();
 
-array<string, 13> I18N::Init() {
+array<string, 13> I18N::init() {
 	string loc = locale("").name();
 	ifstream in;
 	do {
@@ -35,8 +36,8 @@ array<string, 13> I18N::Init() {
 	if (!in.is_open()) {
 		in.close();
 		cerr << "File " << loc << " does not exist, "
-			<< "insertionfinder uses en_US.utf8 instead." << endl;
-		in.open(LIBRARY_PATH + string("i18n/en_US.utf8"));
+			<< "insertionfinder uses C instead." << endl;
+		in.open(LIBRARY_PATH + string("i18n/C"));
 	}
 
 	array<string, 13> str;
@@ -75,18 +76,6 @@ namespace {
 		}
 		Print(out, in, args...);
 	}
-	
-	void ReplaceAll(string &str, const string &prev, const string &now) {
-		size_t length = prev.length();
-		while (true) {
-			size_t pos = str.find(prev);
-			if (pos == string::npos) {
-				break;
-			} else {
-				str = str.substr(0, pos) + now + str.substr(pos + length);
-			}
-		}
-	}
 }
 
 string I18N::Scramble(const string &scramble) {
@@ -106,13 +95,11 @@ string I18N::Solve(const string &solve) {
 }
 
 string I18N::TheCubeIsSolved() {
-	string str(I18N::i18n[2]);
-	return str;
+	return I18N::i18n[2];
 }
 
 string I18N::ThereIsParity() {
-	string str(I18N::i18n[3]);
-	return str;
+	return I18N::i18n[3];
 }
 
 string I18N::Cycles(int corner, int edge) {
@@ -137,8 +124,7 @@ string I18N::Cycles(int corner, int edge) {
 }
 
 string I18N::NoProperInsertionsFound() {
-	string str(I18N::i18n[7]);
-	return str;
+	return I18N::i18n[7];
 }
 
 string I18N::InsertAt(int n, const string &formula) {

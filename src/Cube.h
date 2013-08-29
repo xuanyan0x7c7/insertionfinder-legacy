@@ -5,7 +5,6 @@
 
 
 class Cube {
-	friend class Algorithm;
 private:
 	std::array<int, 8> co;
 	std::array<int, 8> cp;
@@ -14,8 +13,8 @@ private:
 public:
 	Cube(const Cube&);
 	Cube(Cube&&);
-	Cube& operator=(const Cube&);
-	Cube& operator=(Cube&&);
+	Cube& operator =(const Cube&);
+	Cube& operator =(Cube&&);
 	~Cube();
 private:
 	enum {
@@ -24,19 +23,19 @@ private:
 public:
 	Cube();
 	Cube(const Formula&);
-private:
-	friend std::istream& operator>>(std::istream&, Cube&);
-	friend std::ostream& operator<<(std::ostream&, const Cube&);
+public:
+	friend std::istream& operator >>(std::istream&, Cube&);
+	friend std::ostream& operator <<(std::ostream&, const Cube&);
 private:
 	static const std::array<Cube, 24> one_move_cube;
 public:
 	static const std::array<int, 147456> corner_cycle_table;
 	static const std::array<int, 245760> edge_cycle_table;
 public:
-	friend bool operator==(const Cube&, const Cube&);
-	friend bool operator!=(const Cube&, const Cube&);
-	friend bool operator<(const Cube&, const Cube&);
-	friend bool operator>(const Cube&, const Cube&);
+	friend bool operator ==(const Cube&, const Cube&);
+	friend bool operator !=(const Cube&, const Cube&);
+	friend bool operator <(const Cube&, const Cube&);
+	friend bool operator >(const Cube&, const Cube&);
 	void Reset();
 	void Twist(int);
 	void TwistCorner(int);

@@ -6,24 +6,24 @@
 class Algorithm {
 public:
 	Cube state;
-	size_t mask;
+	std::size_t mask;
 	bool change_corner;
 	bool change_edge;
 private:
 	std::vector<Formula> formula;
 public:
-	Algorithm();
 	Algorithm(const Algorithm&);
 	Algorithm(Algorithm&&);
-	Algorithm& operator=(const Algorithm&);
-	Algorithm& operator=(Algorithm&&);
+	Algorithm& operator =(const Algorithm&);
+	Algorithm& operator =(Algorithm&&);
 	~Algorithm();
 public:
-	Algorithm(const Cube&);
-	friend std::istream& operator>>(std::istream&, Algorithm&);
-	void AddFormula(const Formula&);
-	void AddFormula(Formula&&);
-	const std::vector<Formula>& GetFormula() const;
-	void CopyFormula(const Algorithm&);
-	void CopyFormula(Algorithm&);
+	Algorithm();
+	Algorithm(const Cube &state);
+	friend std::istream& operator >>(std::istream &in, Algorithm &alg);
+	void AddFormula(const Formula &f);
+	void AddFormula(Formula &&f);
+	const std::vector<Formula>& GetFormula() const noexcept;
+	void CopyFormula(const Algorithm &alg);
+	void CopyFormula(Algorithm &alg);
 };
